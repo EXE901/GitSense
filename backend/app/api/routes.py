@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database.session import get_db_session
 from app.services.github_service import GitHubService, GitHubServiceError
 
 router = APIRouter()
@@ -15,11 +18,20 @@ async def health_check():
 
 
 @router.get("/scrape/{owner}/{repo}")
-async def scrape_repo(owner: str, repo: str):
+async def scrape_repo(
+    owner: str,
+    repo: str,
+    db: AsyncSession = Depends(get_db_session)
+):
     try:
         issues = await github_service.fetch_issues(
             owner=owner,
             repo=repo
+        )
+        await github_service.save_issues(
+            db=db,
+            issues=issues,
+            repository_name=f"{owner}/{repo}"
         )
     except GitHubServiceError as exc:
         raise HTTPException(

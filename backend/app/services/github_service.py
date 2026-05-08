@@ -1,7 +1,13 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 import httpx
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.issue import Issue
 
 try:
     from dotenv import load_dotenv
@@ -74,6 +80,40 @@ class GitHubService:
 
         return issues_data
 
+    async def save_issues(
+        self,
+        db: AsyncSession,
+        issues: list[dict],
+        repository_name: str
+    ) -> None:
+        if not issues:
+            return
+
+        try:
+            existing_issues = await self._get_existing_issues(db, issues)
+
+            for issue_data in issues:
+                github_issue_id = issue_data["id"]
+                issue = existing_issues.get(github_issue_id)
+
+                if issue is None:
+                    issue = Issue(github_issue_id=github_issue_id)
+                    db.add(issue)
+
+                self._apply_issue_data(
+                    issue=issue,
+                    issue_data=issue_data,
+                    repository_name=repository_name
+                )
+
+            await db.commit()
+        except SQLAlchemyError as exc:
+            await db.rollback()
+            raise GitHubServiceError(
+                "Fetched issues, but failed to save them to the database.",
+                status_code=500
+            ) from exc
+
     def _build_issue_params(
         self,
         state: str,
@@ -110,6 +150,45 @@ class GitHubService:
             label["name"]
             for label in issue["labels"]
         ]
+
+    async def _get_existing_issues(
+        self,
+        db: AsyncSession,
+        issues: list[dict]
+    ) -> dict[int, Issue]:
+        github_issue_ids = [
+            issue["id"]
+            for issue in issues
+        ]
+
+        result = await db.execute(
+            select(Issue).where(Issue.github_issue_id.in_(github_issue_ids))
+        )
+        existing_issues = result.scalars().all()
+
+        return {
+            issue.github_issue_id: issue
+            for issue in existing_issues
+        }
+
+    def _apply_issue_data(
+        self,
+        issue: Issue,
+        issue_data: dict,
+        repository_name: str
+    ) -> None:
+        issue.issue_number = issue_data["number"]
+        issue.title = issue_data["title"]
+        issue.state = issue_data["state"]
+        issue.comments_count = issue_data["comments"]
+        issue.labels = issue_data["labels"]
+        issue.created_at = self._parse_github_datetime(issue_data["created_at"])
+        issue.updated_at = self._parse_github_datetime(issue_data["updated_at"])
+        issue.issue_url = issue_data["url"]
+        issue.repository_name = repository_name
+
+    def _parse_github_datetime(self, value: str) -> datetime:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
     def _load_token_from_environment(self) -> str | None:
         self._load_dotenv_file()
