@@ -9,6 +9,13 @@ except ImportError:
     load_dotenv = None
 
 
+class GitHubServiceError(Exception):
+    def __init__(self, message: str, status_code: int):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
+
 class GitHubService:
     BASE_URL = "https://api.github.com"
     ENV_FILE_PATH = Path(__file__).resolve().parents[2] / ".env"
@@ -35,29 +42,35 @@ class GitHubService:
         issues_data = []
         url = f"{self.BASE_URL}/repos/{owner}/{repo}/issues"
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            for page in range(1, max_pages + 1):
-                response = await client.get(
-                    url,
-                    headers=self.headers,
-                    params=self._build_issue_params(
-                        state=state,
-                        sort=sort,
-                        direction=direction,
-                        page=page
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                for page in range(1, max_pages + 1):
+                    response = await client.get(
+                        url,
+                        headers=self.headers,
+                        params=self._build_issue_params(
+                            state=state,
+                            sort=sort,
+                            direction=direction,
+                            page=page
+                        )
                     )
-                )
-                response.raise_for_status()
-                issues = response.json()
+                    self._raise_for_api_error(response, owner, repo)
+                    issues = response.json()
 
-                if not issues:
-                    break
+                    if not issues:
+                        break
 
-                for issue in issues:
-                    if self._is_pull_request(issue):
-                        continue
+                    for issue in issues:
+                        if self._is_pull_request(issue):
+                            continue
 
-                    issues_data.append(self._format_issue(issue))
+                        issues_data.append(self._format_issue(issue))
+        except httpx.RequestError as exc:
+            raise GitHubServiceError(
+                "Unable to reach GitHub right now. Please try again shortly.",
+                status_code=502
+            ) from exc
 
         return issues_data
 
@@ -107,3 +120,38 @@ class GitHubService:
             return
 
         load_dotenv(dotenv_path=self.ENV_FILE_PATH, override=False)
+
+    def _raise_for_api_error(
+        self,
+        response: httpx.Response,
+        owner: str,
+        repo: str
+    ) -> None:
+        if response.is_success:
+            return
+
+        if response.status_code == 404:
+            raise GitHubServiceError(
+                f"Repository '{owner}/{repo}' was not found on GitHub.",
+                status_code=404
+            )
+
+        if self._is_rate_limited(response):
+            raise GitHubServiceError(
+                "GitHub API rate limit exceeded. Please try again later.",
+                status_code=429
+            )
+
+        raise GitHubServiceError(
+            "GitHub API request failed. Please try again later.",
+            status_code=502
+        )
+
+    def _is_rate_limited(self, response: httpx.Response) -> bool:
+        return (
+            response.status_code == 429 or
+            (
+                response.status_code == 403 and
+                response.headers.get("x-ratelimit-remaining") == "0"
+            )
+        )
