@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import Select, func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +25,15 @@ class GitHubServiceError(Exception):
 class GitHubService:
     BASE_URL = "https://api.github.com"
     ENV_FILE_PATH = Path(__file__).resolve().parents[2] / ".env"
+    ISSUE_SORT_COLUMNS = {
+        "created_at": Issue.created_at,
+        "updated_at": Issue.updated_at,
+        "comments": Issue.comments_count,
+        "number": Issue.issue_number,
+        "title": Issue.title,
+        "state": Issue.state,
+        "repo": Issue.repository_name
+    }
 
     def __init__(self, token: str | None = None):
         resolved_token = token or self._load_token_from_environment()
@@ -114,6 +123,49 @@ class GitHubService:
                 status_code=500
             ) from exc
 
+    async def get_stored_issues(
+        self,
+        db: AsyncSession,
+        repo: str | None = None,
+        state: str | None = None,
+        page: int = 1,
+        limit: int = 20,
+        sort_by: str = "updated_at",
+        sort_direction: str = "desc"
+    ) -> dict:
+        try:
+            filtered_query = self._build_stored_issues_query(
+                repo=repo,
+                state=state
+            )
+            total_issues = await self._count_stored_issues(
+                db=db,
+                query=filtered_query
+            )
+            paginated_query = self._apply_stored_issue_sorting(
+                query=filtered_query,
+                sort_by=sort_by,
+                sort_direction=sort_direction
+            ).offset((page - 1) * limit).limit(limit)
+
+            result = await db.execute(paginated_query)
+            issues = result.scalars().all()
+
+            return {
+                "total_issues": total_issues,
+                "page": page,
+                "limit": limit,
+                "issues": [
+                    self._format_stored_issue(issue)
+                    for issue in issues
+                ]
+            }
+        except SQLAlchemyError as exc:
+            raise GitHubServiceError(
+                "Failed to retrieve stored issues from the database.",
+                status_code=500
+            ) from exc
+
     def _build_issue_params(
         self,
         state: str,
@@ -189,6 +241,58 @@ class GitHubService:
 
     def _parse_github_datetime(self, value: str) -> datetime:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+    def _build_stored_issues_query(
+        self,
+        repo: str | None,
+        state: str | None
+    ) -> Select:
+        query = select(Issue)
+
+        if repo:
+            query = query.where(Issue.repository_name == repo)
+
+        if state:
+            query = query.where(Issue.state == state)
+
+        return query
+
+    async def _count_stored_issues(
+        self,
+        db: AsyncSession,
+        query: Select
+    ) -> int:
+        count_query = select(func.count()).select_from(query.subquery())
+        result = await db.execute(count_query)
+
+        return result.scalar_one()
+
+    def _apply_stored_issue_sorting(
+        self,
+        query: Select,
+        sort_by: str,
+        sort_direction: str
+    ) -> Select:
+        sort_column = self.ISSUE_SORT_COLUMNS[sort_by]
+
+        if sort_direction == "asc":
+            return query.order_by(sort_column.asc())
+
+        return query.order_by(sort_column.desc())
+
+    def _format_stored_issue(self, issue: Issue) -> dict:
+        return {
+            "id": issue.github_issue_id,
+            "number": issue.issue_number,
+            "title": issue.title,
+            "state": issue.state,
+            "comments": issue.comments_count,
+            "labels": issue.labels,
+            "created_at": issue.created_at.isoformat(),
+            "updated_at": issue.updated_at.isoformat(),
+            "url": issue.issue_url,
+            "repo": issue.repository_name
+        }
 
     def _load_token_from_environment(self) -> str | None:
         self._load_dotenv_file()
