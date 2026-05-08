@@ -1,16 +1,27 @@
+import os
+from pathlib import Path
+
 import httpx
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 
 class GitHubService:
     BASE_URL = "https://api.github.com"
+    ENV_FILE_PATH = Path(__file__).resolve().parents[2] / ".env"
 
     def __init__(self, token: str | None = None):
+        resolved_token = token or self._load_token_from_environment()
+
         self.headers = {
             "Accept": "application/vnd.github+json"
         }
 
-        if token:
-            self.headers["Authorization"] = f"Bearer {token}"
+        if resolved_token:
+            self.headers["Authorization"] = f"Bearer {resolved_token}"
 
     async def fetch_issues(
         self,
@@ -86,3 +97,13 @@ class GitHubService:
             label["name"]
             for label in issue["labels"]
         ]
+
+    def _load_token_from_environment(self) -> str | None:
+        self._load_dotenv_file()
+        return os.getenv("GITHUB_TOKEN")
+
+    def _load_dotenv_file(self) -> None:
+        if load_dotenv is None:
+            return
+
+        load_dotenv(dotenv_path=self.ENV_FILE_PATH, override=False)
