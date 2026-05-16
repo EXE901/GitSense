@@ -4,7 +4,7 @@
 
 # GitSense
 
-### Engineering intelligence for GitHub workspaces.
+### WorkFLow intelligence for GitHub workspaces.
 
 Operational analytics over real GitHub repository data — backlog pressure,
 stale signals, contributor concentration, throughput trends, and grounded
