@@ -1,4 +1,31 @@
-echo "venv/
-.env
+# Python
 __pycache__/
-*.pyc" > .gitignore
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Local development artifacts
+*.sqlite
+*.sqlite3
+*.db
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

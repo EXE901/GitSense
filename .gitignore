@@ -1,4 +1,89 @@
-backend/venv/
-backend/.env
-frontend/.next/
+# Dependencies
 node_modules/
+backend/venv/
+backend/.venv/
+
+# Build artifacts
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.tsbuildinfo
+**/__pycache__/
+*.pyc
+
+# Environment files
+backend/.env
+backend/.env.local
+backend/.env.*.local
+frontend/.env.local
+frontend/.env.*.local
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test / scratch artifacts
+cookies.txt
+ai-briefing-live.json
+*.har
+
+# Screenshots from Playwright sweeps (kept under .playwright-mcp/)
+.playwright-mcp/
+/*-screenshot.png
+/final-*.png
+/dashboard-*.png
+/screenshot-*.png
+
+# Curated repository screenshots (used by README) — keep these.
+!docs/screenshots/
+!docs/screenshots/**
+
+# Quarantined files awaiting review
+.cleanup_review/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+AGENTS.md
+CLAUDE.md
+**/AGENTS.md
+**/CLAUDE.md
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Coverage artifacts
+coverage/
+.coverage
+htmlcov/
+
+# AI / editor tooling
+.cursor/
+.windsurf/
+.roo/
+
+# Vercel
+.vercel/
+
+# Playwright outputs
+playwright-report/
+test-results/
+
+# Optional future tooling
+.turbo/
+.pnpm-store/
+
+# Windows junk
+Desktop.ini
