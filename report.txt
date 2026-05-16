@@ -1,0 +1,374 @@
+================================================================
+GitSense — Production Deployment Readiness Pass
+================================================================
+
+TARGETS
+-------
+- Frontend on Vercel    -> https://gitsense.tech
+- Backend on Railway    -> https://api.gitsense.tech
+- Database on Neon      -> Postgres pooled connection (sslmode=require)
+- AI provider           -> OpenRouter (DeepSeek free tier)
+- OAuth                 -> GitHub (required), Google (optional)
+
+Local development workflow (http://localhost:3000 +
+http://localhost:8000) is fully preserved.
+
+No architectural changes. No new services. No refactors of
+auth, AI, or service boundaries.
+
+
+================================================================
+1. LOCALHOST AUDIT — ALL REFERENCES FOUND
+================================================================
+
+Searched the entire repo for `localhost` and `127.0.0.1`.
+
+Backend source code:
+  backend/app/main.py
+    line 22 (BEFORE): allow_origins=["http://localhost:3000"]
+    -> REPLACED with env-aware resolver (see section 2).
+  backend/app/services/auth_service.py
+    line 1236: default="http://localhost:3000/login"
+    line 1245: default="http://localhost:3000/reset-password"
+    line 1260: default="http://localhost:3000/auth/github/callback"
+    -> PRESERVED. These are only used when the matching env
+       var is unset. In production those env vars are set, so
+       these defaults are inert. They make local dev "just work"
+       with no env file.
+
+Backend env templates:
+  backend/.env.example       -> REWRITTEN (see section 3).
+  backend/.env (local only, gitignored) -> NOT TOUCHED.
+
+Frontend source code:
+  frontend/src/app/layout.tsx
+    line 11 (BEFORE): fallback host 'https://gitsense.app'
+    -> CHANGED to 'https://gitsense.tech'. Local fallback
+       'http://localhost:3000' preserved.
+
+Backend services with stale 'gitsense.app' defaults:
+  backend/app/services/ai_briefing_service.py
+    OPENROUTER_REFERER default 'https://gitsense.app'
+    -> CHANGED to 'https://gitsense.tech'.
+  backend/app/services/email_service.py
+    RESEND_FROM_EMAIL default '... <no-reply@gitsense.app>'
+    -> CHANGED to '... <no-reply@gitsense.tech>'.
+
+Docs / README:
+  frontend/README.md mentioned 'gitsense.app'
+    -> CHANGED to 'gitsense.tech'.
+
+Generated artifacts (untouched):
+  backend/.env, frontend/.env.local — local only, gitignored.
+
+No console.log, no print(), no hardcoded http URLs in
+frontend/src or backend/app outside of the documented
+defaults above.
+
+
+================================================================
+2. BACKEND CORS — ENV-AWARE
+================================================================
+
+backend/app/main.py — REWRITTEN with the same surface area
+plus a CORS resolver:
+
+  CORS_ALLOW_ORIGINS  (env, comma-separated)
+    Default (local dev) = "http://localhost:3000,http://127.0.0.1:3000"
+    Production value    = "https://gitsense.tech,https://www.gitsense.tech"
+
+Verified at import time:
+  CORS_ALLOW_ORIGINS unset      -> ['http://localhost:3000',
+                                    'http://127.0.0.1:3000']
+  CORS_ALLOW_ORIGINS=<prod>     -> ['https://gitsense.tech',
+                                    'https://www.gitsense.tech']
+
+Other middleware settings unchanged:
+  allow_credentials=True
+  allow_methods=["*"]
+  allow_headers=["*"]
+
+Title also changed from "GitHub Issue Intelligence API" to
+"GitSense API" for consistency with the product name.
+
+
+================================================================
+3. backend/.env.example — REWRITTEN
+================================================================
+
+The template now documents both local and production values for
+every host-bound variable. Highlights:
+
+  DATABASE_URL                        local + Neon example
+  CORS_ALLOW_ORIGINS                  new variable, documented
+  GITHUB_REDIRECT_URI                 local + api.gitsense.tech
+  FRONTEND_GITHUB_CALLBACK_URL        local + gitsense.tech
+  GOOGLE_REDIRECT_URI                 local + api.gitsense.tech
+  RESEND_FROM_EMAIL                   gitsense.tech domain
+  FRONTEND_EMAIL_VERIFICATION_URL     local + gitsense.tech
+  FRONTEND_PASSWORD_RESET_URL         local + gitsense.tech
+  OPENROUTER_REFERER                  gitsense.tech default
+
+Every host-bound entry has a commented `# prod:` line next to
+its dev default so an operator can see at a glance what to set
+for production.
+
+
+================================================================
+4. RAILWAY READINESS
+================================================================
+
+Three new files at backend/ root:
+
+  backend/Procfile
+    web: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+
+  backend/railway.json
+    {
+      "build": { "builder": "NIXPACKS" },
+      "deploy": {
+        "startCommand": "uvicorn app.main:app --host 0.0.0.0
+                         --port ${PORT:-8000}",
+        "healthcheckPath": "/health",
+        "healthcheckTimeout": 30,
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 5
+      }
+    }
+
+  backend/runtime.txt
+    python-3.12
+
+Railway picks up:
+  - runtime via runtime.txt
+  - dependencies via requirements.txt
+  - start command via railway.json / Procfile (railway.json wins)
+  - readiness probe via healthcheckPath
+  - port via $PORT (Railway-injected; falls back to 8000 locally)
+
+Repository root: set to `backend/` in Railway service settings.
+
+
+================================================================
+5. VERCEL READINESS
+================================================================
+
+No new files required. Vercel auto-detects Next.js when the
+project root is set to `frontend/`. The required env vars are:
+
+  NEXT_PUBLIC_API_BASE_URL = https://api.gitsense.tech
+  NEXT_PUBLIC_SITE_URL     = https://gitsense.tech
+
+frontend/.env.local.example added so contributors and future
+deployments see exactly what's needed.
+
+The Next.js metadata layer now produces correct absolute OG /
+Twitter image URLs in production because `metadataBase`
+resolves to:
+  - https://gitsense.tech  (NODE_ENV=production, no env override)
+  - $NEXT_PUBLIC_SITE_URL  (if set)
+  - http://localhost:3000  (dev fallback)
+
+
+================================================================
+6. OAUTH ADJUSTMENTS
+================================================================
+
+OAuth architecture is unchanged. Only the URLs change.
+
+Required GitHub OAuth app (one per environment, GitHub does
+not allow multiple callback URLs):
+
+  Production OAuth app:
+    Homepage URL              https://gitsense.tech
+    Authorization callback    https://api.gitsense.tech/auth/oauth/github/callback
+
+  Local-dev OAuth app:
+    Homepage URL              http://localhost:3000
+    Authorization callback    http://localhost:8000/auth/oauth/github/callback
+
+The backend then redirects the browser to
+FRONTEND_GITHUB_CALLBACK_URL after the handshake completes.
+
+Google OAuth (optional) follows the same pattern. Authorized
+JavaScript origins must include the frontend origin; authorized
+redirect URIs must include the backend callback URL.
+
+
+================================================================
+7. COOKIES & CROSS-ORIGIN AUTH
+================================================================
+
+GitSense's authenticated flow does NOT rely on cross-origin
+cookies, so the production split between gitsense.tech and
+api.gitsense.tech works without browser cookie gymnastics:
+
+  - Access token: stored in localStorage, sent as
+    `Authorization: Bearer <jwt>` header.
+  - Guest session: stored in localStorage, sent as
+    `X-Guest-Session-Id` header.
+  - The backend's `gitsense_guest_session_id` cookie
+    (secure=False, samesite="lax") is a same-origin
+    convenience only. In production it will not round-trip
+    between gitsense.tech and api.gitsense.tech — and it does
+    not need to, because the header path covers all flows.
+
+  No change made to the cookie configuration. Setting
+  samesite="none" + secure=True would require HTTPS in dev
+  and would not provide any new capability the headers do not
+  already provide.
+
+
+================================================================
+8. VALIDATION RESULTS
+================================================================
+
+  Backend py_compile (main, ai_briefing_service, email_service):
+    BACKEND_OK
+
+  Backend CORS resolver runtime check:
+    unset    -> ['http://localhost:3000', 'http://127.0.0.1:3000']
+    prod env -> ['https://gitsense.tech', 'https://www.gitsense.tech']
+
+  Backend /health (live):
+    {"status":"healthy"}
+
+  Frontend tsc --noEmit:    EXITCODE=0 (clean)
+  Frontend eslint .:        EXITCODE=0 (clean)
+  Frontend next build:      EXITCODE=0
+                            15 static routes, zero warnings
+
+
+================================================================
+9. PRODUCTION ENVIRONMENT VARIABLES — CHECKLIST
+================================================================
+
+Railway (backend) — minimum required:
+
+  DATABASE_URL=postgresql+asyncpg://<user>:<pwd>@<neon-host>/<db>?sslmode=require
+  JWT_SECRET_KEY=<64+ chars>
+  CORS_ALLOW_ORIGINS=https://gitsense.tech,https://www.gitsense.tech
+  GITHUB_CLIENT_ID=<oauth app>
+  GITHUB_CLIENT_SECRET=<oauth app>
+  GITHUB_REDIRECT_URI=https://api.gitsense.tech/auth/oauth/github/callback
+  FRONTEND_GITHUB_CALLBACK_URL=https://gitsense.tech/auth/github/callback
+  GITHUB_TOKEN=<optional but recommended>
+  RESEND_API_KEY=<from resend.com>
+  RESEND_FROM_EMAIL=GitSense <no-reply@gitsense.tech>
+  FRONTEND_EMAIL_VERIFICATION_URL=https://gitsense.tech/login
+  FRONTEND_PASSWORD_RESET_URL=https://gitsense.tech/reset-password
+  OPENROUTER_API_KEY=<sk-or-v1-...>
+  OPENROUTER_MODEL=deepseek/deepseek-v4-flash:free
+  OPENROUTER_REFERER=https://gitsense.tech
+  OPENROUTER_APP_TITLE=GitSense
+
+Vercel (frontend) — minimum required:
+
+  NEXT_PUBLIC_API_BASE_URL=https://api.gitsense.tech
+  NEXT_PUBLIC_SITE_URL=https://gitsense.tech
+
+
+================================================================
+10. REQUIRED GITHUB OAUTH SETTINGS
+================================================================
+
+Production OAuth app
+  URL:                  https://github.com/settings/applications/new
+  Application name:     GitSense
+  Homepage URL:         https://gitsense.tech
+  Authorization
+    callback URL:       https://api.gitsense.tech/auth/oauth/github/callback
+
+Dev OAuth app (separate, optional)
+  Application name:     GitSense (dev)
+  Homepage URL:         http://localhost:3000
+  Authorization
+    callback URL:       http://localhost:8000/auth/oauth/github/callback
+
+
+================================================================
+11. REMAINING MANUAL DEPLOYMENT STEPS
+================================================================
+
+These cannot be automated from the repo — operator action
+required:
+
+  1. DNS:
+     - gitsense.tech       -> Vercel target (already done by user)
+     - www.gitsense.tech   -> Vercel target (optional)
+     - api.gitsense.tech   -> CNAME to Railway service domain
+  2. Railway:
+     - Create service, set root directory to `backend/`.
+     - Paste env vars from section 9.
+     - Attach custom domain api.gitsense.tech.
+  3. Vercel:
+     - Import repo with root directory `frontend/`.
+     - Paste the two NEXT_PUBLIC_* env vars from section 9.
+     - Attach custom domain gitsense.tech.
+  4. GitHub OAuth:
+     - Create the production OAuth app (section 10).
+     - Paste GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET into
+       Railway env.
+  5. Neon:
+     - Create project, copy pooled connection string.
+     - Prefix scheme with postgresql+asyncpg://.
+     - Paste into DATABASE_URL on Railway.
+  6. OpenRouter:
+     - Generate API key, paste into OPENROUTER_API_KEY on Railway.
+
+
+================================================================
+12. RISKS / BLOCKERS
+================================================================
+
+  - Database migrations: backend currently relies on init_db()
+    at startup. For production schema changes, introduce
+    Alembic. Out of scope for this pass.
+  - Per-worker briefing cache: each uvicorn worker keeps its
+    own 90s cache. Acceptable for single-instance Railway
+    deployments; needs Redis for multi-instance scaling.
+  - CORS_ALLOW_ORIGINS uses an exact-match list. If Vercel
+    preview deployments need to hit the production API, add
+    each preview origin or a regex-aware origin policy. Not
+    required for the initial production cut.
+  - OpenRouter free tier may rate-limit under sustained
+    traffic. Behavior is already bounded (10 s outer timeout
+    + deterministic fallback). No deployment risk.
+  - Backend secrets currently in backend/.env (local) must NOT
+    be reused in production — generate fresh values for
+    JWT_SECRET_KEY and the OAuth client secrets before going
+    live. The .env file is gitignored so this is not a leak,
+    but operators should rotate.
+
+
+================================================================
+13. SUMMARY OF FILES TOUCHED IN THIS PASS
+================================================================
+
+Backend
+  app/main.py                          rewritten (env-aware CORS)
+  app/services/ai_briefing_service.py  default referer host
+  app/services/email_service.py        default from-email host
+  .env.example                         rewritten w/ prod values
+  Procfile                             new (Railway start)
+  railway.json                         new (Railway config)
+  runtime.txt                          new (python-3.12)
+
+Frontend
+  src/app/layout.tsx                   metadataBase fallback host
+  README.md                            docstring host fix
+  .env.local.example                   new (template)
+
+Repository docs
+  docs/DEPLOYMENT.md                   rewritten with real domains,
+                                        Railway + Vercel + GitHub
+                                        OAuth recipes, smoke test
+  report.txt                           this report
+
+No source-code refactors. No service boundary changes. No
+business logic touched. Local dev workflow remains identical.
+
+
+================================================================
+END OF REPORT
+================================================================

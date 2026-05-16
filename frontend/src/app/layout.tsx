@@ -8,7 +8,7 @@ import './globals.css'
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  || (process.env.NODE_ENV === 'production' ? 'https://gitsense.app' : 'http://localhost:3000');
+  || (process.env.NODE_ENV === 'production' ? 'https://gitsense.tech' : 'http://localhost:3000');
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

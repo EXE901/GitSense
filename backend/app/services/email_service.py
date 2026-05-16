@@ -14,7 +14,7 @@ load_dotenv(dotenv_path=ENV_FILE_PATH, override=False)
 class EmailService:
     def __init__(self) -> None:
         self.resend_api_key = os.getenv("RESEND_API_KEY")
-        self.from_email = os.getenv("RESEND_FROM_EMAIL", "GitSense <no-reply@gitsense.app>")
+        self.from_email = os.getenv("RESEND_FROM_EMAIL", "GitSense <no-reply@gitsense.tech>")
 
     def is_configured(self) -> bool:
         return bool(self.resend_api_key and self.from_email)

@@ -36,7 +36,7 @@ CACHE_TTL_SECONDS = 90
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_DEFAULT_MODEL = "deepseek/deepseek-v4-flash:free"
 
-OPENROUTER_REFERER = os.getenv("OPENROUTER_REFERER", "https://gitsense.app")
+OPENROUTER_REFERER = os.getenv("OPENROUTER_REFERER", "https://gitsense.tech")
 OPENROUTER_APP_TITLE = os.getenv("OPENROUTER_APP_TITLE", "GitSense")
 
 

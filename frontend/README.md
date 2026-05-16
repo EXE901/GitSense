@@ -34,7 +34,7 @@ at `NEXT_PUBLIC_API_BASE_URL`.
 | Variable                  | Default                      | Purpose                         |
 | ------------------------- | ---------------------------- | ------------------------------- |
 | `NEXT_PUBLIC_API_BASE_URL`| `""` (same-origin)           | Backend base URL                |
-| `NEXT_PUBLIC_SITE_URL`    | `https://gitsense.app` in    | Used by `metadataBase` for      |
+| `NEXT_PUBLIC_SITE_URL`    | `https://gitsense.tech` in   | Used by `metadataBase` for      |
 |                           | production                   | absolute OG / Twitter image URLs|
 
 ---
