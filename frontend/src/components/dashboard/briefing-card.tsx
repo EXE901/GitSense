@@ -13,6 +13,7 @@ import {
   type BriefingTone,
   type WorkspaceBriefing,
 } from '@/lib/ai-briefing';
+import { formatModelLabel, formatModelTitle } from '@/lib/ai-model-labels';
 import type { OwnershipHeaders } from '@/lib/issues';
 
 type BriefingCardProps = {
@@ -270,13 +271,15 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
 
 function SourceChip({ isLLM, model }: { isLLM: boolean; model: string | null }) {
   if (isLLM) {
+    const label = formatModelLabel(model);
+    const title = formatModelTitle(model, 'llm');
     return (
       <span
         className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200"
-        title={model ?? 'LLM-generated'}
+        title={title}
       >
         <Bot size={11} aria-hidden="true" />
-        AI · {model ? truncate(model, 18) : 'model'}
+        AI · {label}
       </span>
     );
   }
@@ -284,7 +287,7 @@ function SourceChip({ isLLM, model }: { isLLM: boolean; model: string | null }) 
   return (
     <span
       className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-border bg-background/40 px-2 py-1 text-[10px] font-semibold text-muted-foreground"
-      title="Deterministic summary — AI provider unavailable or unconfigured"
+      title={formatModelTitle(null, 'deterministic')}
     >
       <Cpu size={11} aria-hidden="true" />
       Deterministic summary
@@ -309,11 +312,6 @@ function BriefingSkeleton() {
       </div>
     </div>
   );
-}
-
-function truncate(value: string, limit: number): string {
-  if (value.length <= limit) return value;
-  return `${value.slice(0, limit - 1)}…`;
 }
 
 function formatRelative(value: string): string {
