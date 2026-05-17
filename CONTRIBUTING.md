@@ -1,23 +1,10 @@
 # Contributing to GitSense
 
-GitSense is an internal engineering intelligence platform. This guide
-keeps contributions tight, deterministic, and aligned with the rules
-in [`AGENTS.md`](AGENTS.md).
+GitSense is an internal workflow intelligence platform. This guide
+keeps contributions tight, deterministic, and aligned.
 
 ---
 
-## Before you start
-
-1. Read [`AGENTS.md`](AGENTS.md) (global), then
-   [`backend/AGENTS.md`](backend/AGENTS.md) and
-   [`frontend/AGENTS.md`](frontend/AGENTS.md) for the layer you are
-   touching.
-2. Confirm the change is in scope. GitSense intentionally avoids
-   chatbots, autonomous agents, vector DBs, RAG layers, and
-   anything that fabricates metrics. Operational intelligence is
-   deterministic-first; the AI layer interprets, it does not invent.
-
----
 
 ## Development setup
 
