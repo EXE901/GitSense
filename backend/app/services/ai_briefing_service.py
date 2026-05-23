@@ -5,7 +5,9 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,11 +29,23 @@ load_dotenv(dotenv_path=ENV_FILE_PATH, override=False)
 logger = logging.getLogger("gitsense.ai_briefing")
 
 
-AI_NARRATION_SDK_TIMEOUT_SECONDS = 9.0
-AI_NARRATION_HARD_TIMEOUT_SECONDS = 10.0
-AI_NARRATION_MAX_TOKENS = 280
-AI_NARRATION_TEMPERATURE = 0.2
+# Timeouts tuned for OpenRouter free-tier latency spikes.
+# The SDK timeout is the inner attempt; the outer asyncio
+# boundary is the unconditional safety net.
+AI_NARRATION_SDK_TIMEOUT_SECONDS = 20.0
+AI_NARRATION_HARD_TIMEOUT_SECONDS = 22.0
+AI_NARRATION_MAX_TOKENS = 240
+AI_NARRATION_TEMPERATURE = 0.15
 CACHE_TTL_SECONDS = 90
+
+# Sanitization / validation bounds for provider output.
+MIN_ACCEPTABLE_OUTPUT_CHARS = 60
+MAX_ACCEPTABLE_OUTPUT_CHARS = 1400
+MIN_ACCEPTABLE_SENTENCES = 2
+MAX_ACCEPTABLE_SENTENCES = 8
+MAX_NON_ASCII_RATIO = 0.05
+MAX_SYMBOL_RATIO = 0.08
+MIN_LATIN_LETTER_RATIO = 0.55
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_DEFAULT_MODEL = "deepseek/deepseek-v4-flash:free"
@@ -41,31 +55,31 @@ OPENROUTER_APP_TITLE = os.getenv("OPENROUTER_APP_TITLE", "GitSense")
 
 
 SYSTEM_PROMPT = (
-    "You are GitSense's operational briefing writer for an engineering "
-    "intelligence platform. You are NOT a chatbot or assistant. You "
-    "produce dense, restrained, technically grounded summaries of a "
-    "GitHub workspace's operational state — the way a senior engineer "
-    "would describe what is happening, not how a marketer would frame it.\n\n"
-    "RULES:\n"
-    "1. Use only signals present in the provided JSON bundle. Never "
-    "invent metrics, percentages, dates, repositories, or causes. If "
-    "a signal is absent, do not reference it.\n"
-    "2. Never claim certainty about root causes. Use grounded, "
-    "observational phrasing: 'persisting', 'concentrated in', "
+    "You are GitSense's operational briefing writer. You write dense, "
+    "restrained, English-only operational summaries of a GitHub workspace "
+    "for senior engineers. You are not a chatbot.\n\n"
+    "OUTPUT FORMAT (strict):\n"
+    "- 3 to 5 sentences of plain English prose. No more.\n"
+    "- No bullet lists, headers, code, markdown, emojis, or labels.\n"
+    "- No preamble, no closing, no quoting the input, no JSON.\n"
+    "- Do not restate these instructions. Do not mention the bundle.\n"
+    "- English only. Do not switch language under any condition.\n\n"
+    "CONTENT RULES:\n"
+    "1. Only describe signals present in the provided JSON. Never invent "
+    "metrics, percentages, dates, repositories, contributors, or causes.\n"
+    "2. Use observational phrasing: 'persisting', 'concentrated in', "
     "'has not improved', 'continues to widen', 'unchanged since'.\n"
     "3. Lead with the dominant operational pressure. Mention secondary "
-    "signals only if they materially reinforce the primary one.\n"
-    "4. Be specific. Reference concrete signal types (stale backlog, "
-    "throughput gap, contributor concentration, recurrence trend) "
-    "instead of generic terms like 'issues' or 'activity'.\n"
-    "5. Output 3 to 5 sentences of prose. No bullet lists, headers, "
-    "emojis, or section labels. No rhetorical questions.\n"
-    "6. If the workspace is healthy, acknowledge it in 2 sentences and "
-    "stop. Do not pad. Do not invent risks to sound thorough.\n"
-    "7. Do not address the reader, do not use 'you', do not use "
-    "marketing language, do not recommend generic SaaS practices. "
-    "No phrases like 'consider', 'we recommend', 'best practices'.\n"
-    "8. Prefer declarative engineering tone over narrative tone."
+    "signals only if they reinforce the primary one.\n"
+    "4. Reference concrete signal types (stale backlog, throughput gap, "
+    "contributor concentration, recurrence trend), not generic terms.\n"
+    "5. If the workspace is healthy, acknowledge it in 2 sentences and "
+    "stop. Do not pad. Do not invent risks.\n"
+    "6. Do not address the reader. No 'you', 'we', 'consider', "
+    "'recommend', 'best practices', marketing language, or rhetorical "
+    "questions.\n"
+    "7. Output prose only. The first character must be a capital letter. "
+    "The final character must be a period."
 )
 
 
@@ -318,37 +332,96 @@ class AIBriefingService:
         if not isinstance(content, str):
             return None
 
-        text = content.strip()
-        if len(text) < 10:
+        cleaned = _sanitize_provider_output(content)
+        if cleaned is None:
+            logger.warning(
+                "AI provider output failed validation; "
+                "falling back deterministically."
+            )
             return None
-        return text[:1600]
+        return cleaned
 
     # ----- Prompt builders -----
 
-    @staticmethod
-    def _build_briefing_user_prompt(bundle: dict[str, Any]) -> str:
-        compact = json.dumps(bundle, separators=(",", ":"))
+    @classmethod
+    def _build_briefing_user_prompt(cls, bundle: dict[str, Any]) -> str:
+        compact = json.dumps(
+            cls._prompt_bundle(bundle, kind="briefing"),
+            separators=(",", ":"),
+            default=str,
+        )
         return (
-            "Write a workspace operational briefing grounded ONLY in the "
-            "following JSON bundle. Output: 3 to 6 sentences of prose. "
-            "Reference the workspace state, the most notable signals, any "
-            "recurrence trends from history, and the contributor "
-            "concentration if present. Do not enumerate metrics with raw "
-            "numbers unless they appear in the bundle.\n\n"
-            f"BUNDLE:\n{compact}"
+            "Write a workspace operational briefing grounded only in the "
+            "JSON below. 3 to 5 sentences. English only. No lists, no "
+            "headers, no code, no markdown. Do not quote the JSON. Do not "
+            "restate these instructions. Do not include numbers unless "
+            "they appear in the JSON.\n\n"
+            f"JSON:\n{compact}"
+        )
+
+    @classmethod
+    def _build_narration_user_prompt(cls, bundle: dict[str, Any]) -> str:
+        compact = json.dumps(
+            cls._prompt_bundle(bundle, kind="narration"),
+            separators=(",", ":"),
+            default=str,
+        )
+        return (
+            "Narrate the active operational insight set in 2 to 4 "
+            "sentences. English only. Plain prose. Only describe signals "
+            "present in the JSON. Do not invent causes or recommend "
+            "generic optimizations.\n\n"
+            f"JSON:\n{compact}"
         )
 
     @staticmethod
-    def _build_narration_user_prompt(bundle: dict[str, Any]) -> str:
-        compact = json.dumps(bundle, separators=(",", ":"))
-        return (
-            "Narrate the current operational insight set in 2 to 4 "
-            "sentences. Only describe signals present in the JSON. Use "
-            "grounded language. Connect related signals where the bundle "
-            "supports it. Do not invent causes or recommend generic "
-            "optimizations.\n\n"
-            f"BUNDLE:\n{compact}"
-        )
+    def _prompt_bundle(bundle: dict[str, Any], kind: str) -> dict[str, Any]:
+        """Compact, prompt-safe projection of the signal bundle.
+
+        Only fields the AI is allowed to narrate are included. Free-form
+        strings are length-capped. Lists are bounded. This keeps the
+        prompt token count low and removes anything the model could
+        latch onto and hallucinate around.
+        """
+        health = bundle.get("health") or {}
+        insights = bundle.get("insights") or []
+        history = bundle.get("history") or []
+
+        compact: dict[str, Any] = {
+            "workspace_repositories": bundle.get("workspace_repositories", 0),
+            "indexed_issues": bundle.get("indexed_issues", 0),
+            "health": {
+                "workspace_state": health.get("workspace_state"),
+                "workspace_score": health.get("workspace_score"),
+                "primary_concern": _cap_text(health.get("primary_concern"), 80),
+                "contributor_concentration": health.get("contributor_concentration"),
+                "top_concentration_repository": _cap_text(
+                    health.get("top_concentration_repository"), 80
+                ),
+            },
+            "insights": [
+                {
+                    "type": insight.get("type"),
+                    "severity": insight.get("severity"),
+                    "title": _cap_text(insight.get("title"), 120),
+                    "repository": _cap_text(insight.get("repository"), 80),
+                    "trend": insight.get("trend"),
+                }
+                for insight in insights[:6]
+            ],
+        }
+
+        if kind == "briefing":
+            compact["history"] = [
+                {
+                    "type": event.get("type"),
+                    "severity_trend": event.get("severity_trend"),
+                    "occurrence_count": event.get("occurrence_count"),
+                }
+                for event in history[:5]
+            ]
+
+        return compact
 
     # ----- Deterministic fallback summarizers -----
 
@@ -566,3 +639,207 @@ class AIBriefingService:
             oldest = sorted(self._cache.items(), key=lambda item: item[1][0])[:128]
             for old_key, _ in oldest:
                 self._cache.pop(old_key, None)
+
+
+# ----- Module-level helpers (output sanitization) -----
+
+
+_PROMPT_LEAKAGE_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
+    re.compile(pattern, re.IGNORECASE) for pattern in (
+        r"\bexactly as shown below\b",
+        r"\bexactly as (?:asked|requested|stated)\b",
+        r"\bas an? (?:ai|language model|assistant)\b",
+        r"\bi am an? (?:ai|language model|assistant)\b",
+        r"\bsystem prompt\b",
+        r"\boutput format\b",
+        r"\bjson bundle\b",
+        r"\bcontent rules?\b",
+        r"\bobservational phrasing\b",
+        r"```",
+        r"^\s*\{",
+    )
+)
+
+
+_BANNED_PHRASES: tuple[str, ...] = (
+    "as an ai",
+    "as a language model",
+    "i cannot",
+    "i can't",
+    "sorry, i",
+    "here is",
+    "here's the",
+    "let me",
+)
+
+
+def _cap_text(value: Any, limit: int) -> Any:
+    """Length-cap a free-form string field so it cannot dominate
+    the prompt or leak large user-controlled content into the
+    context window."""
+    if value is None or not isinstance(value, str):
+        return value
+    if len(value) <= limit:
+        return value
+    return value[: max(1, limit - 1)].rstrip() + "…"
+
+
+def _strip_code_fences(text: str) -> str:
+    return re.sub(r"```+[a-zA-Z]*\n?", "", text).replace("```", "")
+
+
+def _normalize_whitespace(text: str) -> str:
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"[ \t\f\v]+", " ", text)
+    text = re.sub(r"\n{2,}", "\n", text)
+    return text.strip()
+
+
+def _count_sentences(text: str) -> int:
+    # Heuristic: count terminal punctuation followed by space/end.
+    return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def _sanitize_provider_output(content: str) -> str | None:
+    """Validate + clean raw provider output.
+
+    Returns the sanitized prose if it passes every guard, or None
+    to indicate the caller should fall back deterministically.
+
+    Guards (in order):
+      1. Unicode-normalize, strip BOMs / zero-width chars.
+      2. Strip markdown fences and surrounding noise.
+      3. Hard length bounds.
+      4. Reject non-English / non-Latin scripts.
+      5. Reject excessive symbol/punctuation noise.
+      6. Reject prompt-leakage and instruction echoes.
+      7. Reject conversational chatbot openers.
+      8. Reject obvious n-gram repetition (looping output).
+      9. Reject if sentence count is outside the expected range.
+    """
+    if not isinstance(content, str):
+        return None
+
+    text = unicodedata.normalize("NFKC", content)
+    text = text.replace("\ufeff", "")  # BOM
+    text = re.sub(r"[\u200b\u200c\u200d\u2060]", "", text)  # zero-width
+    text = _strip_code_fences(text)
+    text = _normalize_whitespace(text)
+
+    if not text:
+        return None
+
+    # Strip leading conversational openers and chatbot scaffolding.
+    text = re.sub(
+        r"^(?:sure|certainly|absolutely|of course|alright|okay)[!,.\s]*",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
+    text = re.sub(
+        r"^(?:here(?:'s| is)|here are)\s+(?:your\s+|the\s+|a\s+)?"
+        r"(?:briefing|summary|operational\s+(?:briefing|summary))"
+        r"[:.,\s\-—]*",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    if len(text) < MIN_ACCEPTABLE_OUTPUT_CHARS:
+        return None
+    if len(text) > MAX_ACCEPTABLE_OUTPUT_CHARS:
+        text = text[:MAX_ACCEPTABLE_OUTPUT_CHARS].rstrip()
+        # Trim back to the last full sentence if we truncated mid-stream.
+        match = re.search(r"[.!?][^.!?]*$", text)
+        if match and match.start() > 0:
+            text = text[: match.start() + 1]
+
+    # Multilingual / script-purity guard.
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return None
+
+    non_ascii_letters = [c for c in letters if ord(c) > 127]
+    if len(non_ascii_letters) / len(letters) > MAX_NON_ASCII_RATIO:
+        return None
+
+    # Reject if the model started writing in a non-Latin script
+    # (Cyrillic, CJK, Arabic, Devanagari, etc.) — common DeepSeek
+    # free-tier failure mode.
+    for ch in letters:
+        name = ""
+        try:
+            name = unicodedata.name(ch, "")
+        except ValueError:
+            name = ""
+        if name and (
+            "CJK" in name
+            or "HIRAGANA" in name
+            or "KATAKANA" in name
+            or "HANGUL" in name
+            or "CYRILLIC" in name
+            or "ARABIC" in name
+            or "DEVANAGARI" in name
+            or "HEBREW" in name
+            or "THAI" in name
+        ):
+            return None
+
+    # Latin-letter ratio guard (rejects symbol-spam responses).
+    total = len(text)
+    latin_letters = sum(1 for c in text if c.isalpha() and ord(c) < 128)
+    if latin_letters / total < MIN_LATIN_LETTER_RATIO:
+        return None
+
+    symbol_chars = sum(
+        1
+        for c in text
+        if not c.isalnum() and not c.isspace() and c not in ".,;:'\"-()/%"
+    )
+    if symbol_chars / total > MAX_SYMBOL_RATIO:
+        return None
+
+    lowered = text.lower()
+    for phrase in _BANNED_PHRASES:
+        if phrase in lowered:
+            return None
+
+    for pattern in _PROMPT_LEAKAGE_PATTERNS:
+        if pattern.search(text):
+            return None
+
+    # Repetition guard: looped n-grams are a common free-tier failure.
+    words = re.findall(r"[A-Za-z][A-Za-z'\-]+", text)
+    if len(words) >= 12:
+        trigrams = [
+            " ".join(words[i : i + 3]).lower()
+            for i in range(len(words) - 2)
+        ]
+        if trigrams:
+            most_common_count = max(trigrams.count(tg) for tg in set(trigrams))
+            if most_common_count >= 3:
+                return None
+
+    # Sentence-count guard.
+    sentences = _count_sentences(text)
+    if sentences < MIN_ACCEPTABLE_SENTENCES:
+        return None
+    if sentences > MAX_ACCEPTABLE_SENTENCES:
+        # Trim to the first MAX_ACCEPTABLE_SENTENCES sentences.
+        cut = 0
+        seen = 0
+        for match in re.finditer(r"[.!?](?:\s|$)", text):
+            seen += 1
+            cut = match.end()
+            if seen >= MAX_ACCEPTABLE_SENTENCES:
+                break
+        if cut:
+            text = text[:cut].rstrip()
+
+    # Final shape requirements.
+    if not text or not text[0].isalpha() or not text[0].isupper():
+        return None
+    if text[-1] not in ".!?":
+        text = text.rstrip() + "."
+
+    return text

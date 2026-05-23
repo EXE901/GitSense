@@ -4,25 +4,69 @@ import Script from 'next/script'
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { ScrollRestoration } from '@/components/layout/scroll-restoration'
 import { ThemeProvider } from '@/components/theme/theme-provider'
+import {
+  OG_IMAGE_PATH,
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_SHORT_DESCRIPTION,
+  SITE_TITLE,
+  SITE_URL,
+  TWITTER_HANDLE,
+} from '@/lib/seo'
 import './globals.css'
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim()
-  || (process.env.NODE_ENV === 'production' ? 'https://gitsense.tech' : 'http://localhost:3000');
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'GitSense — Engineering Intelligence for GitHub Workspaces',
-  description: 'Operational analytics for GitHub repositories. Issue trends, stale backlog pressure, contributor concentration, and grounded workspace briefings for engineering teams.',
-  applicationName: 'GitSense',
-  keywords: ['GitHub', 'issue tracking', 'engineering analytics', 'DevOps', 'workspace health', 'operational insights', 'developer productivity'],
-  authors: [{ name: 'GitSense' }],
+  title: {
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: 'technology',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   openGraph: {
-    title: 'GitSense — Engineering Intelligence for GitHub Workspaces',
-    description: 'Operational analytics for GitHub repositories — backlog pressure, stale signals, contributor concentration, and grounded workspace briefings.',
+    title: SITE_TITLE,
+    description: SITE_SHORT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: 'website',
-    siteName: 'GitSense',
-    images: [{ url: '/logos/symbol.svg', width: 1200, height: 1200, alt: 'GitSense' }],
+    locale: 'en_US',
+    images: [
+      {
+        url: OG_IMAGE_PATH,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} — ${SITE_DESCRIPTION}`,
+        type: 'image/png',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_SHORT_DESCRIPTION,
+    site: TWITTER_HANDLE,
+    creator: TWITTER_HANDLE,
+    images: [OG_IMAGE_PATH],
   },
   icons: {
     icon: [
@@ -30,6 +74,11 @@ export const metadata: Metadata = {
     ],
     shortcut: '/logos/symbol.svg',
     apple: '/logos/symbol.svg',
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
 }
 

@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { ResetPasswordForm } from '@/components/auth/reset-password-form';
 
-export const metadata = {
-  title: 'Reset Password - GitSense',
-  description: 'Create a new GitSense account password',
+export const metadata: Metadata = {
+  title: 'Reset password',
+  description: 'Create a new GitSense account password.',
+  alternates: { canonical: '/reset-password' },
+  robots: { index: false, follow: false },
 };
 
 export default function ResetPasswordPage() {

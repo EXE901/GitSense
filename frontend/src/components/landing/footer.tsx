@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { ProductLogo } from '@/components/branding/product-logo';
 import { ExternalLink, Star } from 'lucide-react';
 
-const GITHUB_REPO_URL = 'https://github.com/gitsense/gitsense';
-const GITHUB_PROFILE_URL = 'https://github.com/gitsense';
+const GITHUB_REPO_URL = 'https://github.com/EXE901/GitSense';
+const GITHUB_PROFILE_URL = 'https://github.com/EXE901';
 
 function GitHubIcon({ size = 18 }: { size?: number }) {
   return (
