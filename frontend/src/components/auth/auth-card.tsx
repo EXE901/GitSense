@@ -1,42 +1,59 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { Reveal } from '@/components/motion';
+
 interface AuthCardProps {
-  children: React.ReactNode;
+  children: ReactNode;
   title: string;
   subtitle?: string;
 }
 
 export function AuthCard({ children, title, subtitle }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md mx-auto">
-      {/* Premium glass-like card - theme-aware */}
-      <div className="relative bg-card/85 border border-border rounded-2xl p-8 backdrop-blur-xl animate-fade-in-up shadow-xl shadow-foreground/[0.08] dark:shadow-black/40">
-        {/* Subtle gradient accent border */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+    <div className="w-full">
+      <Reveal y={20} duration={520}>
+        <div
+          className="relative rounded-[16px] border p-7 [box-shadow:inset_0_1px_0_oklch(1_0_0/0.05),0_24px_64px_-32px_oklch(0_0_0/0.45)]"
+          style={{
+            background:
+              'linear-gradient(180deg, color-mix(in oklch, var(--gs-bg-1) 95%, transparent), color-mix(in oklch, var(--gs-bg-1) 80%, transparent))',
+            borderColor: 'var(--gs-border-default)',
+          }}
+        >
+          {/* Faint top accent border */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-6 top-0 h-px"
+            style={{
+              background:
+                'linear-gradient(90deg, transparent, color-mix(in oklch, var(--gs-accent-primary) 60%, transparent), transparent)',
+              opacity: 0.7,
+            }}
+          />
 
-        {/* Content wrapper */}
-        <div className="relative space-y-8">
-          {/* Heading section */}
-          <div className="text-center space-y-3">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          <div className="space-y-7">
+            <div className="text-center space-y-2">
+              <h1
+                className="text-[22px] font-medium tracking-[-0.01em]"
+                style={{ color: 'var(--gs-fg-0)' }}
+              >
+                {title}
+              </h1>
+              {subtitle ? (
+                <p
+                  className="text-[13px] leading-[1.55]"
+                  style={{ color: 'var(--gs-fg-2)' }}
+                >
+                  {subtitle}
+                </p>
+              ) : null}
+            </div>
 
-          {/* Divider - theme-aware */}
-          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-
-          {/* Content */}
-          <div className="space-y-6">
-            {children}
+            <div className="space-y-5">{children}</div>
           </div>
         </div>
-      </div>
+      </Reveal>
     </div>
   );
 }

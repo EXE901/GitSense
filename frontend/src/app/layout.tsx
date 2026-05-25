@@ -1,9 +1,22 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import Script from 'next/script'
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { ScrollRestoration } from '@/components/layout/scroll-restoration'
 import { ThemeProvider } from '@/components/theme/theme-provider'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+})
 import {
   OG_IMAGE_PATH,
   SITE_DESCRIPTION,
@@ -98,7 +111,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" className={`bg-background scroll-smooth ${inter.variable} ${jetbrainsMono.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="antialiased font-sans overflow-x-hidden">
         <Script id="theme-bootstrap" strategy="beforeInteractive">
           {`

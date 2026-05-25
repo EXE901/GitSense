@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { ProductLogo } from '@/components/branding/product-logo';
 import { ExternalLink, Star } from 'lucide-react';
+import { ProductLogo } from '@/components/branding/product-logo';
 
 const GITHUB_REPO_URL = 'https://github.com/EXE901/GitSense';
 const GITHUB_PROFILE_URL = 'https://github.com/EXE901';
 
-function GitHubIcon({ size = 18 }: { size?: number }) {
+function GitHubIcon({ size = 16 }: { size?: number }) {
   return (
     <svg
       width={size}
@@ -26,115 +26,150 @@ function GitHubIcon({ size = 18 }: { size?: number }) {
   );
 }
 
+const COLUMNS = [
+  {
+    heading: 'Platform',
+    links: [
+      { href: '#features', label: 'Features' },
+      { href: '#showcase', label: 'Showcase' },
+      { href: '#workflow', label: 'Workflow' },
+      { href: '/dashboard', label: 'Dashboard' },
+    ],
+  },
+  {
+    heading: 'Workspace',
+    links: [
+      { href: '/analytics', label: 'Analytics' },
+      { href: '/activity', label: 'Activity' },
+      { href: '/repositories', label: 'Repositories' },
+      { href: '/settings', label: 'Settings' },
+    ],
+  },
+];
+
 export function LandingFooter() {
   const currentYear = new Date().getFullYear();
-
   return (
-    <footer className="border-t border-border bg-secondary/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-10">
-          <div className="md:col-span-5 space-y-4">
-            <ProductLogo href="/" size="sm" showText={true} />
-            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
-              GitHub operations intelligence — issue velocity, contributor signal, and workflow visibility for engineering teams.
-            </p>
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card/80 px-3 py-2 text-xs font-semibold text-foreground transition-smooth hover:border-primary/40 hover:bg-secondary/70"
-            >
-              <Star size={14} className="text-amber-400" aria-hidden="true" />
-              Star GitSense on GitHub
-              <ExternalLink size={12} className="text-muted-foreground" aria-hidden="true" />
-            </a>
-          </div>
-
-          <div className="md:col-span-2">
-            <h4 className="font-semibold text-foreground mb-3 text-sm">Platform</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</Link></li>
-              <li><Link href="#workflow" className="text-muted-foreground hover:text-foreground transition-colors">Workflow</Link></li>
-              <li><Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link></li>
-              <li><Link href="/analytics" className="text-muted-foreground hover:text-foreground transition-colors">Analytics</Link></li>
-            </ul>
-          </div>
-
-          <div className="md:col-span-2">
-            <h4 className="font-semibold text-foreground mb-3 text-sm">Workspace</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/activity" className="text-muted-foreground hover:text-foreground transition-colors">Activity</Link></li>
-              <li><Link href="/repositories" className="text-muted-foreground hover:text-foreground transition-colors">Repositories</Link></li>
-              <li><Link href="/trends" className="text-muted-foreground hover:text-foreground transition-colors">Trends</Link></li>
-              <li><Link href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</Link></li>
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="font-semibold text-foreground mb-3 text-sm">Open Source</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Repository
-                  <ExternalLink size={12} aria-hidden="true" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={GITHUB_PROFILE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  GitHub profile
-                  <ExternalLink size={12} aria-hidden="true" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`${GITHUB_REPO_URL}/issues`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Report an issue
-                  <ExternalLink size={12} aria-hidden="true" />
-                </a>
-              </li>
-            </ul>
-          </div>
+    <footer
+      className="border-t"
+      style={{
+        borderColor: 'var(--gs-border-subtle)',
+        background:
+          'linear-gradient(180deg, color-mix(in oklch, var(--gs-bg-1) 50%, transparent), var(--gs-bg-0))',
+      }}
+    >
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-10 px-4 py-14 sm:px-6 md:grid-cols-12">
+        <div className="md:col-span-5 space-y-4">
+          <ProductLogo href="/" size="sm" showText={true} />
+          <p className="max-w-[36ch] text-[13.5px] leading-[1.6] text-[color:var(--gs-fg-2)]">
+            GitHub-native operational intelligence — issue velocity, contributor signal, and workflow visibility for engineering teams.
+          </p>
+          <a
+            href={GITHUB_REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[12px] font-medium text-[color:var(--gs-fg-1)] transition-colors hover:bg-[color:var(--gs-bg-2)]"
+            style={{
+              borderColor: 'var(--gs-border-default)',
+              background: 'color-mix(in oklch, var(--gs-bg-1) 80%, transparent)',
+            }}
+          >
+            <Star size={13} style={{ color: 'var(--gs-state-warning)' }} aria-hidden="true" />
+            Star GitSense on GitHub
+            <ExternalLink size={11} style={{ color: 'var(--gs-fg-2)' }} aria-hidden="true" />
+          </a>
         </div>
 
-        <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <p className="text-xs text-muted-foreground">
+        {COLUMNS.map((col) => (
+          <div key={col.heading} className="md:col-span-2">
+            <h4 className="mb-3 text-[11px] uppercase tracking-[0.14em] text-[color:var(--gs-fg-2)]">
+              {col.heading}
+            </h4>
+            <ul className="space-y-2">
+              {col.links.map((l) => (
+                <li key={l.href}>
+                  <Link
+                    href={l.href}
+                    className="text-[13px] text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)]"
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        <div className="md:col-span-3">
+          <h4 className="mb-3 text-[11px] uppercase tracking-[0.14em] text-[color:var(--gs-fg-2)]">
+            Open source
+          </h4>
+          <ul className="space-y-2">
+            <li>
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[13px] text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)]"
+              >
+                Repository
+                <ExternalLink size={11} aria-hidden="true" />
+              </a>
+            </li>
+            <li>
+              <a
+                href={GITHUB_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[13px] text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)]"
+              >
+                Maintainer profile
+                <ExternalLink size={11} aria-hidden="true" />
+              </a>
+            </li>
+            <li>
+              <a
+                href={`${GITHUB_REPO_URL}/issues`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[13px] text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)]"
+              >
+                Report an issue
+                <ExternalLink size={11} aria-hidden="true" />
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div
+        className="border-t"
+        style={{ borderColor: 'var(--gs-border-subtle)' }}
+      >
+        <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-3 px-4 py-5 text-center sm:flex-row sm:px-6 sm:text-left">
+          <p className="text-[12px] text-[color:var(--gs-fg-2)]">
             © {currentYear} GitSense · Built for developers who live in GitHub.
           </p>
-
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <a
               href={GITHUB_PROFILE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card/60 text-muted-foreground transition-smooth hover:border-primary/40 hover:text-foreground"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)] hover:bg-[color:var(--gs-bg-2)]"
+              style={{ borderColor: 'var(--gs-border-default)' }}
               aria-label="GitSense GitHub profile"
-              title="GitSense GitHub profile"
             >
-              <GitHubIcon size={16} />
+              <GitHubIcon size={14} />
             </a>
             <a
               href={GITHUB_REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card/60 px-3 py-2 text-xs font-semibold text-muted-foreground transition-smooth hover:border-primary/40 hover:text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[12px] font-medium text-[color:var(--gs-fg-1)] transition-colors hover:text-[color:var(--gs-fg-0)] hover:bg-[color:var(--gs-bg-2)]"
+              style={{ borderColor: 'var(--gs-border-default)' }}
               aria-label="View GitSense repository"
-              title="View GitSense repository"
             >
-              <Star size={13} className="text-amber-400" aria-hidden="true" />
+              <Star size={12} style={{ color: 'var(--gs-state-warning)' }} aria-hidden="true" />
               Star repo
             </a>
           </div>

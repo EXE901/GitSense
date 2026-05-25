@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { AuthCard } from '@/components/auth/auth-card';
 import { FormInput } from '@/components/auth/form-input';
 import { OAuthButtons } from '@/components/auth/oauth-buttons';
-import { PremiumButton } from '@/components/auth/premium-button';
 import { useAuth } from '@/components/auth/auth-provider';
+import { Button } from '@/components/primitives';
+import { RevealGroup } from '@/components/motion';
 import { confirmEmailVerification } from '@/lib/auth';
 
 export function LoginForm() {
@@ -21,11 +22,14 @@ export function LoginForm() {
 
   useEffect(() => {
     const verificationToken = new URLSearchParams(window.location.search).get('verify_token');
-
     if (verificationToken) {
       confirmEmailVerification(verificationToken)
-        .then(() => setStatusMessage('Email verified. Sign in to continue with unlimited repository sync.'))
-        .catch((error) => setErrorMessage(error instanceof Error ? error.message : 'Unable to verify email.'));
+        .then(() =>
+          setStatusMessage('Email verified. Sign in to continue with unlimited repository sync.')
+        )
+        .catch((error) =>
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to verify email.')
+        );
     }
   }, []);
 
@@ -45,7 +49,6 @@ export function LoginForm() {
     }
 
     setIsSubmitting(true);
-
     try {
       await login({ email, password });
       const searchParams = new URLSearchParams(window.location.search);
@@ -58,71 +61,123 @@ export function LoginForm() {
   }
 
   return (
-    <AuthCard title="Welcome back" subtitle="Sign in to your GitSense account">
-      <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-        <OAuthButtons />
-      </div>
-
-      <div className="relative animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border/50 dark:border-white/10" />
+    <AuthCard title="Welcome back" subtitle="Sign in to your GitSense workspace">
+      <RevealGroup stagger={80} y={12} duration={360} className="space-y-5">
+        <div>
+          <OAuthButtons />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground/70">Or continue with email</span>
-        </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        {errorMessage && (
-          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive/90" role="alert">
-            {errorMessage}
-          </p>
-        )}
-        {statusMessage && (
-          <p className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-300" role="status">
-            {statusMessage}
-          </p>
-        )}
-
-        <FormInput
-          label="Email address"
-          type="email"
-          placeholder="you@company.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          autoComplete="email"
-          required
-        />
-        <FormInput
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="current-password"
-          required
-        />
-
-        <div className="text-right">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary/80 hover:text-primary transition-colors font-medium"
+        <div className="relative">
+          <div
+            className="absolute inset-0 flex items-center"
+            aria-hidden="true"
           >
-            Forgot password?
+            <div
+              className="w-full border-t"
+              style={{ borderColor: 'var(--gs-border-subtle)' }}
+            />
+          </div>
+          <div className="relative flex justify-center">
+            <span
+              className="px-3 text-[11px] uppercase tracking-[0.14em]"
+              style={{
+                background:
+                  'color-mix(in oklch, var(--gs-bg-1) 95%, transparent)',
+                color: 'var(--gs-fg-2)',
+              }}
+            >
+              Or continue with email
+            </span>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {errorMessage ? (
+            <p
+              role="alert"
+              className="rounded-md border px-3 py-2 text-[12.5px]"
+              style={{
+                background:
+                  'color-mix(in oklch, var(--gs-state-danger) 10%, transparent)',
+                borderColor:
+                  'color-mix(in oklch, var(--gs-state-danger) 30%, transparent)',
+                color: 'var(--gs-state-danger)',
+              }}
+            >
+              {errorMessage}
+            </p>
+          ) : null}
+          {statusMessage ? (
+            <p
+              role="status"
+              className="rounded-md border px-3 py-2 text-[12.5px]"
+              style={{
+                background:
+                  'color-mix(in oklch, var(--gs-state-open) 10%, transparent)',
+                borderColor:
+                  'color-mix(in oklch, var(--gs-state-open) 30%, transparent)',
+                color: 'var(--gs-state-open)',
+              }}
+            >
+              {statusMessage}
+            </p>
+          ) : null}
+
+          <FormInput
+            label="Email address"
+            type="email"
+            placeholder="you@company.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+          />
+          <FormInput
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-[12px] font-medium transition-colors hover:text-[color:var(--gs-fg-0)]"
+              style={{ color: 'var(--gs-accent-primary)' }}
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            glow
+            loading={isSubmitting}
+            className="w-full"
+          >
+            Sign in to GitSense
+          </Button>
+        </form>
+
+        <div
+          className="text-center text-[12.5px]"
+          style={{ color: 'var(--gs-fg-2)' }}
+        >
+          Don&apos;t have an account?{' '}
+          <Link
+            href="/signup"
+            className="font-medium transition-colors hover:text-[color:var(--gs-fg-0)]"
+            style={{ color: 'var(--gs-accent-primary)' }}
+          >
+            Create one
           </Link>
         </div>
-
-        <PremiumButton type="submit" variant="primary" className="mt-6" isLoading={isSubmitting}>
-          Sign in to GitSense
-        </PremiumButton>
-      </form>
-
-      <div className="text-center text-sm animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        <span className="text-muted-foreground">Don&apos;t have an account? </span>
-        <Link href="/signup" className="text-primary font-medium hover:text-primary/80 transition-colors">
-          Create one
-        </Link>
-      </div>
+      </RevealGroup>
     </AuthCard>
   );
 }

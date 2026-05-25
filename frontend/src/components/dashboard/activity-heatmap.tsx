@@ -122,21 +122,21 @@ export function ActivityHeatmap({
   const meta = metricMeta[metric];
 
   return (
-    <section className="mb-6">
+    <section>
       <div className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
               <LayoutGrid size={14} />
             </span>
-            <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+            <h2 className="text-[17px] font-semibold text-foreground sm:text-xl">
               Operational Heatmap
             </h2>
             <span className="rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Repository density
             </span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{meta.description}</p>
+          <p className="mt-1 text-[12.5px] text-muted-foreground sm:text-sm">{meta.description}</p>
         </div>
         <MetricSelector active={metric} onChange={setMetric} />
       </div>
@@ -213,7 +213,7 @@ function MetricSelector({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(key)}
-            className={`px-3 py-1.5 text-xs font-semibold transition-smooth ${
+            className={`inline-flex h-9 items-center px-3 text-[12.5px] font-semibold transition-smooth sm:h-8 sm:text-xs ${
               isActive
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground'

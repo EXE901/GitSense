@@ -118,7 +118,7 @@ export function InsightsPanel({
   }
 
   return (
-    <section className="mb-6">
+    <section>
       <PanelHeader response={response} isLoading={isLoading} />
 
       {isLoading && <InsightsSkeleton />}
@@ -156,20 +156,20 @@ function PanelHeader({
   const issueCount = response?.indexed_issues ?? 0;
 
   return (
-    <div className="mb-4 flex flex-col gap-2 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-3 flex flex-col gap-1 sm:mb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-2">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
             <Sparkles size={14} />
           </span>
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+          <h2 className="text-[17px] font-semibold text-foreground sm:text-xl">
             Workflow Insights
           </h2>
           <span className="rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             v1 · Rule-based
           </span>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+        <p className="mt-1 text-[12.5px] text-muted-foreground sm:text-sm">
           {isLoading
             ? 'Analyzing repository activity for operational signals.'
             : insightCount > 0
@@ -202,7 +202,7 @@ function InsightCard({ insight }: { insight: Insight }) {
             <SeverityBadge severity={insight.severity} />
             <TrendChip trend={insight.trend} />
           </div>
-          <h3 className="mt-2 truncate text-sm font-semibold text-foreground sm:text-[15px]">
+          <h3 className="mt-2 line-clamp-2 text-[14.5px] font-semibold text-foreground sm:line-clamp-none sm:truncate sm:text-[15px]">
             {insight.title}
           </h3>
           {insight.repository && (
@@ -213,7 +213,7 @@ function InsightCard({ insight }: { insight: Insight }) {
         </div>
       </header>
 
-      <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+      <p className="text-[13px] leading-relaxed text-muted-foreground sm:text-sm">
         {insight.description}
       </p>
 
@@ -240,7 +240,7 @@ function InsightCard({ insight }: { insight: Insight }) {
           <Lightbulb size={11} aria-hidden="true" />
           Recommended action
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-foreground/90">
+        <p className="mt-1 text-[12.5px] leading-relaxed text-foreground/90 sm:text-xs">
           {insight.recommendation}
         </p>
       </div>
@@ -320,14 +320,14 @@ function ConfidenceMeter({ value, tone }: { value: number; tone: string }) {
 
 function EmptyInsights() {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 text-center sm:p-8">
+    <div className="rounded-xl border border-border bg-card p-5 text-center sm:p-8">
       <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
         <Sparkles size={18} />
       </div>
       <p className="text-sm font-semibold text-foreground">
         Insights will appear here as your workspace grows
       </p>
-      <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+      <p className="mx-auto mt-1 max-w-md text-[12.5px] leading-relaxed text-muted-foreground sm:text-xs">
         Sync at least one repository with enough issue history and the engine will surface
         stale backlog risk, intake spikes, bug trends, inactive repositories, and more.
       </p>

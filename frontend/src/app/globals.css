@@ -3,6 +3,78 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ------------------------------------------------------------------ */
+/* GitSense design tokens (Phase 0 — additive, non-breaking)          */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Motion */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --dur-instant: 120ms;
+  --dur-fast: 180ms;
+  --dur-base: 280ms;
+  --dur-slow: 480ms;
+  --dur-cinematic: 720ms;
+  --stagger-tight: 40ms;
+  --stagger-normal: 80ms;
+  --stagger-loose: 120ms;
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows (used sparingly) */
+  --shadow-1: 0 1px 0 0 oklch(0 0 0 / 0.4);
+  --shadow-2: 0 8px 24px -8px oklch(0 0 0 / 0.45);
+  --shadow-3: 0 24px 64px -16px oklch(0 0 0 / 0.55);
+  --shadow-glow: 0 0 0 1px oklch(0.62 0.16 250 / 0.4), 0 0 24px oklch(0.62 0.16 250 / 0.25);
+
+  /* Surface ramp (light theme baseline) */
+  --gs-bg-0: oklch(0.985 0.008 240);
+  --gs-bg-1: oklch(0.965 0.012 245);
+  --gs-bg-2: oklch(0.94 0.015 245);
+  --gs-bg-3: oklch(0.9 0.018 245);
+  --gs-border-subtle: oklch(0.9 0.015 245);
+  --gs-border-default: oklch(0.86 0.018 245);
+  --gs-border-strong: oklch(0.78 0.022 245);
+  --gs-fg-0: oklch(0.17 0.025 250);
+  --gs-fg-1: oklch(0.32 0.025 250);
+  --gs-fg-2: oklch(0.47 0.03 250);
+  --gs-fg-3: oklch(0.6 0.025 250);
+
+  /* Accent — GitHub-native blue */
+  --gs-accent-primary: oklch(0.62 0.16 250);
+  --gs-accent-primary-hover: oklch(0.68 0.17 250);
+  --gs-accent-primary-pressed: oklch(0.56 0.15 250);
+  --gs-accent-primary-soft: oklch(0.62 0.16 250 / 0.12);
+  --gs-accent-glow: oklch(0.7 0.18 245 / 0.35);
+  --gs-accent-cyan: oklch(0.78 0.12 200);
+  --gs-accent-deep: oklch(0.42 0.14 255);
+
+  /* Operational states */
+  --gs-state-open: oklch(0.65 0.16 145);
+  --gs-state-closed: oklch(0.58 0.18 295);
+  --gs-state-merged: oklch(0.58 0.18 295);
+  --gs-state-draft: oklch(0.58 0.018 250);
+  --gs-state-warning: oklch(0.75 0.15 75);
+  --gs-state-danger: oklch(0.62 0.20 25);
+  --gs-state-info: var(--gs-accent-primary);
+
+  /* Chart palette */
+  --gs-chart-1: oklch(0.62 0.16 250);
+  --gs-chart-2: oklch(0.78 0.12 200);
+  --gs-chart-3: oklch(0.65 0.16 145);
+  --gs-chart-4: oklch(0.75 0.15 75);
+  --gs-chart-5: oklch(0.58 0.18 295);
+  --gs-chart-6: oklch(0.62 0.20 25);
+}
+
 :root {
   color-scheme: light;
   --background: oklch(0.985 0.008 240);
@@ -38,6 +110,21 @@
   --chart-3: oklch(0.55 0.2 25);
   --chart-4: oklch(0.6 0.15 80);
   --chart-5: oklch(0.5 0.18 160);
+}
+
+.dark {
+  /* GitSense dark token ramp (canonical) */
+  --gs-bg-0: oklch(0.13 0.012 250);
+  --gs-bg-1: oklch(0.16 0.013 250);
+  --gs-bg-2: oklch(0.19 0.014 250);
+  --gs-bg-3: oklch(0.23 0.014 250);
+  --gs-border-subtle: oklch(0.22 0.012 250);
+  --gs-border-default: oklch(0.28 0.014 250);
+  --gs-border-strong: oklch(0.38 0.016 250);
+  --gs-fg-0: oklch(0.97 0.005 250);
+  --gs-fg-1: oklch(0.78 0.012 250);
+  --gs-fg-2: oklch(0.58 0.018 250);
+  --gs-fg-3: oklch(0.42 0.015 250);
 }
 
 .dark {
@@ -97,8 +184,33 @@
 }
 
 @theme inline {
-  --font-sans: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+  --font-sans: var(--font-inter), 'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', 'Cascadia Code', 'SFMono-Regular', Consolas, monospace;
+  /* GitSense tokens exposed to Tailwind utilities */
+  --color-gs-bg-0: var(--gs-bg-0);
+  --color-gs-bg-1: var(--gs-bg-1);
+  --color-gs-bg-2: var(--gs-bg-2);
+  --color-gs-bg-3: var(--gs-bg-3);
+  --color-gs-border-subtle: var(--gs-border-subtle);
+  --color-gs-border-default: var(--gs-border-default);
+  --color-gs-border-strong: var(--gs-border-strong);
+  --color-gs-fg-0: var(--gs-fg-0);
+  --color-gs-fg-1: var(--gs-fg-1);
+  --color-gs-fg-2: var(--gs-fg-2);
+  --color-gs-fg-3: var(--gs-fg-3);
+  --color-gs-accent: var(--gs-accent-primary);
+  --color-gs-accent-hover: var(--gs-accent-primary-hover);
+  --color-gs-accent-pressed: var(--gs-accent-primary-pressed);
+  --color-gs-accent-soft: var(--gs-accent-primary-soft);
+  --color-gs-accent-cyan: var(--gs-accent-cyan);
+  --color-gs-accent-deep: var(--gs-accent-deep);
+  --color-gs-state-open: var(--gs-state-open);
+  --color-gs-state-closed: var(--gs-state-closed);
+  --color-gs-state-merged: var(--gs-state-merged);
+  --color-gs-state-draft: var(--gs-state-draft);
+  --color-gs-state-warning: var(--gs-state-warning);
+  --color-gs-state-danger: var(--gs-state-danger);
+  --color-gs-state-info: var(--gs-state-info);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -658,3 +770,203 @@
     }
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* GitSense motion primitives (Phase 0)                                */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  /* Stable viewport unit for sticky sections on mobile Safari.
+     `100vh` changes as the URL bar shows/hides, which causes sticky
+     scrub progress to jitter. `100svh` is the small viewport height
+     (URL bar visible) — stable across the transition. */
+  .gs-h-stable {
+    height: 100vh;        /* fallback for older browsers */
+    height: 100svh;       /* iOS Safari, Chrome Android, modern */
+  }
+  .gs-min-h-stable {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  /* Workflow scrub: node + copy active states driven by [data-active-step]
+     instead of React setState in a scroll listener. Pure CSS attribute
+     selectors mean zero re-renders during scrub. */
+  .gs-workflow-node-circle {
+    r: 14;
+    stroke: var(--gs-border-default);
+    stroke-width: 1;
+    transition:
+      r 200ms var(--ease-emphasized),
+      stroke 200ms var(--ease-standard),
+      filter 200ms var(--ease-standard);
+  }
+  .gs-workflow-node-label {
+    fill: var(--gs-fg-2);
+    transition: fill 200ms var(--ease-standard);
+  }
+  /* node ≤ active step → activated */
+  [data-active-step='0'] [data-node-step='0'] .gs-workflow-node-circle,
+  [data-active-step='1'] [data-node-step='0'] .gs-workflow-node-circle,
+  [data-active-step='1'] [data-node-step='1'] .gs-workflow-node-circle,
+  [data-active-step='2'] [data-node-step='0'] .gs-workflow-node-circle,
+  [data-active-step='2'] [data-node-step='1'] .gs-workflow-node-circle,
+  [data-active-step='2'] [data-node-step='2'] .gs-workflow-node-circle,
+  [data-active-step='3'] [data-node-step='0'] .gs-workflow-node-circle,
+  [data-active-step='3'] [data-node-step='1'] .gs-workflow-node-circle,
+  [data-active-step='3'] [data-node-step='2'] .gs-workflow-node-circle,
+  [data-active-step='3'] [data-node-step='3'] .gs-workflow-node-circle,
+  [data-active-step='4'] [data-node-step='0'] .gs-workflow-node-circle,
+  [data-active-step='4'] [data-node-step='1'] .gs-workflow-node-circle,
+  [data-active-step='4'] [data-node-step='2'] .gs-workflow-node-circle,
+  [data-active-step='4'] [data-node-step='3'] .gs-workflow-node-circle,
+  [data-active-step='4'] [data-node-step='4'] .gs-workflow-node-circle {
+    r: 18;
+    stroke: var(--gs-accent-primary);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 16px color-mix(in oklch, var(--gs-accent-primary) 60%, transparent));
+  }
+  [data-active-step='0'] [data-node-step='0'] .gs-workflow-node-label,
+  [data-active-step='1'] [data-node-step='0'] .gs-workflow-node-label,
+  [data-active-step='1'] [data-node-step='1'] .gs-workflow-node-label,
+  [data-active-step='2'] [data-node-step='0'] .gs-workflow-node-label,
+  [data-active-step='2'] [data-node-step='1'] .gs-workflow-node-label,
+  [data-active-step='2'] [data-node-step='2'] .gs-workflow-node-label,
+  [data-active-step='3'] [data-node-step='0'] .gs-workflow-node-label,
+  [data-active-step='3'] [data-node-step='1'] .gs-workflow-node-label,
+  [data-active-step='3'] [data-node-step='2'] .gs-workflow-node-label,
+  [data-active-step='3'] [data-node-step='3'] .gs-workflow-node-label,
+  [data-active-step='4'] [data-node-step='0'] .gs-workflow-node-label,
+  [data-active-step='4'] [data-node-step='1'] .gs-workflow-node-label,
+  [data-active-step='4'] [data-node-step='2'] .gs-workflow-node-label,
+  [data-active-step='4'] [data-node-step='3'] .gs-workflow-node-label,
+  [data-active-step='4'] [data-node-step='4'] .gs-workflow-node-label {
+    fill: var(--gs-fg-0);
+  }
+
+  /* Showcase card 3D tilt — desktop only. The card stays flat on mobile
+     to avoid awkward perspective on portrait viewports. */
+  .gs-showcase-card {
+    transition: transform 80ms linear;
+  }
+  @media (min-width: 1024px) {
+    .gs-showcase-card {
+      transform:
+        perspective(1400px)
+        rotateX(calc((1 - var(--gs-showcase-p)) * 10deg))
+        rotateY(calc((var(--gs-showcase-p) - 0.5) * -6deg));
+      transform-style: preserve-3d;
+    }
+  }
+
+  /* Workflow copy: only the copy whose data-copy-step matches the
+     ancestor data-active-step is visible. */
+  .gs-workflow-copy {
+    opacity: 0;
+    transform: translateX(12px);
+    transition:
+      opacity 280ms var(--ease-standard),
+      transform 320ms var(--ease-emphasized);
+    pointer-events: none;
+  }
+  [data-active-step='0'] [data-copy-step='0'],
+  [data-active-step='1'] [data-copy-step='1'],
+  [data-active-step='2'] [data-copy-step='2'],
+  [data-active-step='3'] [data-copy-step='3'],
+  [data-active-step='4'] [data-copy-step='4'] {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* Canonical reveal: opacity + translateY. Driven by [data-reveal].
+     Renders at final state by default so SSR/no-JS users see content.
+     The <Reveal> client primitive flips the attribute on intersect. */
+  [data-reveal] {
+    transition:
+      opacity var(--dur-slow) var(--ease-emphasized),
+      transform var(--dur-slow) var(--ease-emphasized);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  [data-reveal='hidden'] {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y, 24px), 0);
+  }
+  [data-reveal='visible'] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* RevealGroup: children inherit incremental delay via --i. */
+  [data-reveal-group] > * {
+    --reveal-delay: calc(var(--i, 0) * var(--reveal-stagger, 80ms));
+  }
+
+  /* Marquee */
+  @keyframes gs-marquee {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+  }
+  .gs-marquee {
+    display: flex;
+    width: max-content;
+    animation: gs-marquee var(--gs-marquee-duration, 40s) linear infinite;
+    will-change: transform;
+  }
+  .gs-marquee[data-paused='true'] { animation-play-state: paused; }
+
+  /* Stroke draw */
+  @keyframes gs-stroke-draw {
+    from { stroke-dashoffset: var(--gs-stroke-length, 1000); }
+    to   { stroke-dashoffset: 0; }
+  }
+  .gs-stroke-draw {
+    stroke-dasharray: var(--gs-stroke-length, 1000);
+    stroke-dashoffset: var(--gs-stroke-length, 1000);
+    animation: gs-stroke-draw var(--gs-stroke-duration, 1800ms) var(--ease-decelerate) forwards;
+  }
+
+  /* Aurora drift (used by landing/auth atmospheric layers) */
+  @keyframes gs-aurora-a {
+    0%   { transform: translate3d(-10%, -10%, 0) scale(1); }
+    50%  { transform: translate3d(15%, 10%, 0) scale(1.15); }
+    100% { transform: translate3d(-10%, -10%, 0) scale(1); }
+  }
+  @keyframes gs-aurora-b {
+    0%   { transform: translate3d(10%, 15%, 0) scale(1.1); }
+    50%  { transform: translate3d(-15%, -5%, 0) scale(1); }
+    100% { transform: translate3d(10%, 15%, 0) scale(1.1); }
+  }
+  .gs-aurora-a { animation: gs-aurora-a 24s var(--ease-emphasized) infinite; will-change: transform; }
+  .gs-aurora-b { animation: gs-aurora-b 28s var(--ease-emphasized) infinite; will-change: transform; }
+
+  /* Grid drift */
+  @keyframes gs-grid-drift {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50%      { transform: translate3d(2px, -2px, 0); }
+  }
+  .gs-grid-drift { animation: gs-grid-drift 12s ease-in-out infinite; will-change: transform; }
+
+  /* Constellation pulse */
+  @keyframes gs-constellation-pulse {
+    0%, 100% { opacity: 0.08; }
+    50%      { opacity: 0.35; }
+  }
+  .gs-constellation-pulse { animation: gs-constellation-pulse 4s ease-in-out infinite; }
+
+  /* GPU layer hint without animating layout */
+  .gs-gpu { transform: translateZ(0); backface-visibility: hidden; }
+
+  /* Per-layer reduced-motion fallback */
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { transition-duration: var(--dur-instant) !important; transform: none !important; }
+    [data-reveal='hidden'] { transform: none !important; }
+    .gs-marquee,
+    .gs-aurora-a,
+    .gs-aurora-b,
+    .gs-grid-drift,
+    .gs-constellation-pulse { animation: none !important; }
+    .gs-stroke-draw { stroke-dashoffset: 0 !important; animation: none !important; }
+  }
+}
+

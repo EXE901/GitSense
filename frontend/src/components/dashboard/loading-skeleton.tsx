@@ -1,28 +1,37 @@
 'use client';
 
+import { Shimmer } from '@/components/motion';
+
+const cardBase =
+  'rounded-[12px] border p-4 [box-shadow:inset_0_1px_0_oklch(1_0_0/0.04)]';
+const cardStyle = {
+  background: 'var(--gs-bg-1)',
+  borderColor: 'var(--gs-border-default)',
+} as const;
+
 export function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
+    <div className={cardBase} style={cardStyle}>
       <div className="mb-4 flex items-start justify-between">
         <div className="flex-1 space-y-2">
-          <div className="h-3 w-24 rounded bg-secondary/70" />
-          <div className="h-2 w-32 rounded bg-secondary/50" />
+          <Shimmer height={10} width={96} />
+          <Shimmer height={8} width={128} />
         </div>
-        <div className="h-10 w-10 rounded-lg bg-secondary/70" />
+        <Shimmer height={32} width={32} rounded="md" />
       </div>
-      <div className="mb-4 h-8 w-32 rounded bg-secondary/70" />
-      <div className="h-12 rounded bg-secondary/50" />
+      <Shimmer height={28} width={120} className="mb-4" />
+      <Shimmer height={24} />
     </div>
   );
 }
 
 export function SkeletonChart() {
   return (
-    <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
-      <div className="mb-6 h-4 w-32 rounded bg-secondary/70" />
-      <div className="space-y-3">
+    <div className={cardBase} style={cardStyle}>
+      <Shimmer height={14} width={128} className="mb-5" />
+      <div className="space-y-2.5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-12 rounded bg-secondary/50" />
+          <Shimmer key={i} height={12} />
         ))}
       </div>
     </div>
@@ -31,23 +40,21 @@ export function SkeletonChart() {
 
 export function SkeletonIssueRow() {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 animate-pulse">
-      <div className="flex items-start justify-between gap-4">
+    <div
+      className="rounded-[10px] border px-3 py-2.5"
+      style={{
+        background: 'var(--gs-bg-1)',
+        borderColor: 'var(--gs-border-subtle)',
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <Shimmer height={16} width={56} rounded="full" />
+        <Shimmer height={10} width={36} />
         <div className="flex-1">
-          <div className="mb-2 flex items-center gap-3">
-            <div className="h-6 w-16 rounded-full bg-secondary/70" />
-            <div className="h-4 w-12 rounded bg-secondary/60" />
-            <div className="h-4 w-24 rounded bg-secondary/60" />
-          </div>
-          <div className="mb-2 h-5 w-2/3 rounded bg-secondary/70" />
-          <div className="mb-3 flex gap-2">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="h-4 w-20 rounded bg-secondary/60" />
-            ))}
-          </div>
-          <div className="h-3 w-40 rounded bg-secondary/50" />
+          <Shimmer height={12} width="60%" />
         </div>
-        <div className="h-8 w-12 rounded bg-secondary/70" />
+        <Shimmer height={10} width={56} />
+        <Shimmer height={20} width={28} rounded="md" />
       </div>
     </div>
   );
@@ -55,10 +62,10 @@ export function SkeletonIssueRow() {
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-3">
-        <div className="h-4 w-32 rounded bg-secondary/60" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Shimmer height={12} width={120} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
@@ -66,18 +73,18 @@ export function DashboardSkeleton() {
       </div>
 
       <div className="space-y-3">
-        <div className="h-4 w-32 rounded bg-secondary/60" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Shimmer height={12} width={120} />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonChart key={i} />
           ))}
         </div>
       </div>
 
-      <div className="space-y-3">
-        <div className="h-4 w-32 rounded bg-secondary/60" />
-        <div className="space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
+      <div className="space-y-2">
+        <Shimmer height={12} width={120} />
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonIssueRow key={i} />
           ))}
         </div>

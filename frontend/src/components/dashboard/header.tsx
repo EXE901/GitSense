@@ -2,14 +2,26 @@
 
 import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { RefreshCw } from 'lucide-react';
+import { Menu, RefreshCw, Search } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
 import { ExportPanel } from '@/components/topbar/export-panel';
 import { NotificationsCenter } from '@/components/topbar/notifications-center';
 import { ShareWorkspacePanel } from '@/components/topbar/share-workspace-panel';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { useAppShell } from '@/components/layout/app-shell';
+import { Kbd } from '@/components/primitives';
 
-const routeLabels: Record<string, string> = {
+const ROUTE_LABELS: Record<string, string> = {
+  '/dashboard': 'Workspace',
+  '/issues': 'Issues',
+  '/analytics': 'Analytics',
+  '/activity': 'Activity',
+  '/repositories': 'Repositories',
+  '/trends': 'Trends',
+  '/settings': 'Settings',
+};
+
+const ROUTE_LABELS_LONG: Record<string, string> = {
   '/dashboard': 'Workspace Overview',
   '/issues': 'Issue Feed',
   '/analytics': 'Analytics & Trends',
@@ -23,8 +35,17 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { guestSession, token } = useAuth();
-  const [statusMessage, setStatusMessage] = useState('GitSense Live');
-  const title = routeLabels[pathname] ?? 'GitSense';
+  const { toggleMobile } = useAppShell();
+  const [statusMessage, setStatusMessage] = useState('Live · synced');
+  // Lazy init: resolved once on first render; SSR returns false.
+  const [isMac] = useState<boolean>(() => {
+    if (typeof navigator === 'undefined') return false;
+    return /mac/i.test(navigator.platform);
+  });
+
+  const shortTitle = ROUTE_LABELS[pathname] ?? 'GitSense';
+  const longTitle = ROUTE_LABELS_LONG[pathname] ?? 'GitSense';
+
   const ownership = useMemo(
     () => ({
       token,
@@ -35,55 +56,123 @@ export function Header() {
 
   function showTemporaryStatus(message: string) {
     setStatusMessage(message);
-    window.setTimeout(() => setStatusMessage('GitSense Live'), 1800);
+    window.setTimeout(() => setStatusMessage('Live · synced'), 1800);
   }
 
   function handleRefresh() {
     window.dispatchEvent(new Event('gitsense:refresh-issues'));
     router.refresh();
-    showTemporaryStatus('Refreshing');
+    showTemporaryStatus('Refreshing…');
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pl-14 pr-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-6 pt-4 sm:pt-4 safe-area-inset-top">
-        {/* Left side */}
-        <div className="min-w-0 flex-1">
-          <h1 className="text-lg sm:text-2xl font-bold text-foreground leading-tight truncate">{title}</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">GitHub issue analytics and workspace signals</p>
-        </div>
+    <div className="flex h-12 items-center gap-2 px-2 sm:gap-3 sm:px-5">
+      {/* Mobile menu */}
+      <button
+        type="button"
+        onClick={toggleMobile}
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[color:var(--gs-fg-1)] transition-colors hover:bg-[color:var(--gs-bg-2)] lg:hidden"
+        aria-label="Open navigation"
+      >
+        <Menu size={17} />
+      </button>
 
-        {/* Right side - compact on mobile */}
-        <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
-          {/* Status indicator - hidden on mobile */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-green-500/10 rounded-lg border border-green-500/30 flex-shrink-0">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-            <span className="text-xs text-green-600/70">{statusMessage}</span>
-          </div>
-
-          {/* Last updated - hidden on mobile */}
-          <div className="text-right hidden sm:block">
-            <p className="text-xs text-muted-foreground">Last updated</p>
-            <p className="text-xs sm:text-sm text-foreground">just now</p>
-          </div>
-
-          {/* Action buttons - mobile optimized */}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="p-2 hover:bg-secondary/70 rounded-lg text-muted-foreground hover:text-foreground transition-smooth hover-scale-up border border-transparent hover:border-border/50 flex-shrink-0"
-            aria-label="Refresh issue data"
-            title="Refresh issue data"
-          >
-            <RefreshCw size={16} />
-          </button>
-
-          <ExportPanel ownership={ownership} route={pathname} onStatus={showTemporaryStatus} />
-          <NotificationsCenter ownership={ownership} route={pathname} onStatus={showTemporaryStatus} />
-          <ShareWorkspacePanel ownership={ownership} route={pathname} onStatus={showTemporaryStatus} />
-          <ThemeToggle compact />
-        </div>
+      {/* Page title — short on mobile, long from sm+ */}
+      <div className="min-w-0 flex-1">
+        <h1 className="truncate text-[13px] font-medium text-[color:var(--gs-fg-0)]">
+          <span className="sm:hidden">{shortTitle}</span>
+          <span className="hidden sm:inline">{longTitle}</span>
+        </h1>
       </div>
-    </header>
+
+      {/* Search hint (md+) */}
+      <button
+        type="button"
+        className="hidden h-8 min-w-[200px] items-center gap-2 rounded-md border px-2.5 text-[12px] text-[color:var(--gs-fg-2)] transition-colors hover:bg-[color:var(--gs-bg-2)] md:inline-flex"
+        style={{
+          background: 'var(--gs-bg-1)',
+          borderColor: 'var(--gs-border-default)',
+        }}
+        aria-label="Search workspace (coming soon)"
+        disabled
+      >
+        <Search size={13} />
+        <span>Search workspace</span>
+        <span className="ml-auto flex items-center gap-0.5">
+          <Kbd>{isMac ? '⌘' : 'Ctrl'}</Kbd>
+          <Kbd>K</Kbd>
+        </span>
+      </button>
+
+      {/* Live status — full pill from sm+, just a dot on mobile */}
+      <div
+        className="hidden items-center gap-1.5 rounded-full border px-2 py-0.5 sm:inline-flex"
+        style={{
+          background: 'color-mix(in oklch, var(--gs-state-open) 10%, transparent)',
+          borderColor:
+            'color-mix(in oklch, var(--gs-state-open) 30%, transparent)',
+        }}
+        aria-label={statusMessage}
+      >
+        <span
+          className="inline-block h-1.5 w-1.5 rounded-full"
+          style={{ background: 'var(--gs-state-open)' }}
+        />
+        <span
+          className="text-[11px] font-medium"
+          style={{ color: 'var(--gs-state-open)' }}
+        >
+          {statusMessage}
+        </span>
+      </div>
+      {/* Mobile-only compact live dot */}
+      <span
+        className="inline-flex h-9 w-3 shrink-0 items-center justify-center sm:hidden"
+        aria-label={statusMessage}
+        title={statusMessage}
+      >
+        <span
+          className="block h-1.5 w-1.5 rounded-full"
+          style={{
+            background: 'var(--gs-state-open)',
+            boxShadow: '0 0 8px var(--gs-state-open)',
+          }}
+        />
+      </span>
+
+      {/* Action cluster — Refresh + Notifications + Theme are always visible.
+          Export + Share are hidden on small viewports to prevent crowding. */}
+      <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <button
+          type="button"
+          onClick={handleRefresh}
+          aria-label="Refresh"
+          title="Refresh"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[color:var(--gs-fg-1)] transition-colors hover:bg-[color:var(--gs-bg-2)] hover:text-[color:var(--gs-fg-0)]"
+        >
+          <RefreshCw size={15} />
+        </button>
+        <span className="hidden sm:inline-flex">
+          <ExportPanel
+            ownership={ownership}
+            route={pathname}
+            onStatus={showTemporaryStatus}
+          />
+        </span>
+        <NotificationsCenter
+          ownership={ownership}
+          route={pathname}
+          onStatus={showTemporaryStatus}
+        />
+        <span className="hidden sm:inline-flex">
+          <ShareWorkspacePanel
+            ownership={ownership}
+            route={pathname}
+            onStatus={showTemporaryStatus}
+          />
+        </span>
+        <ThemeToggle compact />
+      </div>
+    </div>
   );
 }

@@ -48,6 +48,10 @@ ai-briefing-live.json
 # Quarantined files awaiting review
 .cleanup_review/
 
+# Archived debris (old playwright captures, scratch screenshots,
+# review notes). Kept on disk for reference but never committed.
+.archive/
+
 # Editor / OS
 .vscode/
 .idea/

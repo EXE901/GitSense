@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/components/auth/auth-provider';
+import { MagneticTarget, Reveal, RevealGroup, WordReveal } from '@/components/motion';
+import { Button, Eyebrow } from '@/components/primitives';
+import { RepositoryPulseSvg } from '@/components/landing/repository-pulse';
 
 export function HeroSection() {
   const { status } = useAuth();
@@ -10,54 +13,125 @@ export function HeroSection() {
   const primaryLabel = status === 'unauthenticated' ? 'Connect GitHub' : 'Open Dashboard';
 
   return (
-    <section className="relative pt-24 sm:pt-32 pb-20 sm:pb-28 px-4 sm:px-6 lg:px-8 overflow-hidden flex items-center min-h-[calc(100vh-4rem)]">
-      {/* Background gradient */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 right-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-accent/10 rounded-full blur-3xl" />
+    <section
+      id="hero"
+      className="relative isolate flex items-center overflow-hidden pt-24 pb-20 sm:pt-32 sm:pb-28"
+      style={{ minHeight: 'calc(100svh - 64px)' }}
+    >
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+        {/* Left — copy column */}
+        <div className="relative z-10 flex flex-col items-start">
+          <Reveal y={12} duration={320}>
+            <Eyebrow tone="accent" className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--gs-accent)]/30 bg-[color:var(--gs-accent-soft)] px-3 py-1.5">
+              <span
+                className="inline-block h-1.5 w-1.5 rounded-full"
+                style={{ background: 'var(--gs-accent-primary)', boxShadow: '0 0 12px var(--gs-accent-primary)' }}
+              />
+              GitHub-native operational intelligence
+            </Eyebrow>
+          </Reveal>
+
+          <h1
+            className="mb-6 max-w-[640px] text-balance font-medium tracking-[-0.015em] text-[color:var(--gs-fg-0)]"
+            style={{
+              fontSize: 'clamp(2.25rem, 4.5vw + 0.5rem, 4rem)',
+              lineHeight: 1.05,
+            }}
+          >
+            <WordReveal
+              as="span"
+              text="Your GitHub workflow,"
+              stagger={42}
+              y={28}
+              duration={520}
+              startDelay={360}
+            />
+            <br />
+            <WordReveal
+              as="span"
+              text="operationalized in real time."
+              stagger={42}
+              y={28}
+              duration={520}
+              startDelay={760}
+              className="text-[color:var(--gs-fg-1)]"
+            />
+          </h1>
+
+          <Reveal y={16} delay={1100} duration={320}>
+            <p className="mb-9 max-w-[56ch] text-[16px] leading-[1.55] text-[color:var(--gs-fg-1)] sm:text-[17px]">
+              Issue velocity, contributor signal, and workflow bottlenecks — measured
+              directly from your repositories. Engineering visibility without leaving
+              the data you already trust.
+            </p>
+          </Reveal>
+
+          <RevealGroup
+            stagger={80}
+            y={12}
+            duration={320}
+            startDelay={1320}
+            className="mb-12 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center"
+          >
+            <MagneticTarget strength={6} radius={80} className="w-full sm:w-auto">
+              <Link href={primaryHref} className="contents">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  glow
+                  iconRight={<ArrowRight size={16} />}
+                  className="w-full sm:w-auto"
+                >
+                  {primaryLabel}
+                </Button>
+              </Link>
+            </MagneticTarget>
+            <Link href="/dashboard?demo=1" className="contents">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                Explore Live Demo
+              </Button>
+            </Link>
+          </RevealGroup>
+
+          <Reveal y={8} delay={1600} duration={320}>
+            <div className="flex items-center gap-2 text-[12px] text-[color:var(--gs-fg-2)]">
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M5 10l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>Free during preview · GitHub OAuth · No CC required</span>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Right — repository pulse visual */}
+        <div className="relative">
+          <Reveal y={32} delay={1100} duration={720} threshold={0.05}>
+            <div className="relative mx-auto w-full max-w-[560px]">
+              <RepositoryPulseSvg />
+            </div>
+          </Reveal>
+        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto w-full">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs sm:text-sm text-primary mb-6 sm:mb-8 animate-fade-in-down">
-          <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          Built for developers who live in GitHub
-        </div>
-
-        {/* Main headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-balance leading-tight mb-4 sm:mb-6 text-foreground animate-fade-in-up">
-          Your GitHub Workflow, Operationalized
-        </h1>
-
-        {/* Subheadline */}
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground text-balance mb-8 sm:mb-10 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          Real-time issue velocity, contributor signal, and workflow bottlenecks — surfaced directly from your repositories. Engineering visibility without leaving GitHub.
-        </p>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-10 sm:mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <Link
-            href={primaryHref}
-            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-primary text-primary-foreground rounded-lg font-semibold hover-lift transition-smooth text-sm sm:text-base"
-          >
-            {primaryLabel}
-            <ArrowRight size={18} />
-          </Link>
-          <Link
-            href="/dashboard?demo=1"
-            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 border border-border bg-card hover:bg-secondary/50 text-foreground rounded-lg font-semibold transition-smooth hover-scale-up text-sm sm:text-base"
-          >
-            Explore Live Demo
-          </Link>
-        </div>
-
-        {/* Trust badge */}
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-          </svg>
-          <span>GitHub-native · Operational analytics in real time</span>
-        </div>
+      {/* Scroll hint */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
+        <Reveal y={6} delay={2000} duration={400}>
+          <div className="flex flex-col items-center gap-1 text-[11px] uppercase tracking-[0.18em] text-[color:var(--gs-fg-2)]">
+            <span>Scroll</span>
+            <ChevronDown
+              size={14}
+              className="animate-bounce"
+              style={{ animationDuration: '1.6s' }}
+            />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

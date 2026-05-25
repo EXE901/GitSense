@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertTriangle, Inbox, RefreshCw, WifiOff, Lock, Clock } from 'lucide-react';
+import { AlertTriangle, Clock, Inbox, Lock, RefreshCw, WifiOff } from 'lucide-react';
+import { Button } from '@/components/primitives';
 
 interface EmptyStateProps {
   title: string;
@@ -24,24 +25,48 @@ export function EmptyState({ title, description, icon = 'inbox', action }: Empty
   const IconComponent = iconMap[icon];
 
   return (
-    <div className="bg-card border border-border rounded-xl p-8 sm:p-12 text-center">
-      <div className="flex justify-center mb-4">
-        <div className="p-3 bg-secondary/60 rounded-lg text-muted-foreground">
-          <IconComponent size={32} />
+    <div
+      className="rounded-[12px] border p-8 text-center sm:p-10 [box-shadow:inset_0_1px_0_oklch(1_0_0/0.04)]"
+      style={{
+        background: 'var(--gs-bg-1)',
+        borderColor: 'var(--gs-border-default)',
+      }}
+    >
+      <div className="flex justify-center">
+        <div
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md"
+          style={{
+            background: 'var(--gs-bg-2)',
+            color: 'var(--gs-fg-2)',
+          }}
+        >
+          <IconComponent size={20} strokeWidth={1.75} />
         </div>
       </div>
-      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-      <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto leading-relaxed">{description}</p>
-      {action && (
-        <button
-          type="button"
-          onClick={action.onClick}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 smooth-transition"
-        >
-          <RefreshCw size={16} />
-          {action.label}
-        </button>
-      )}
+      <h3
+        className="mt-4 text-[16px] font-medium tracking-[-0.01em]"
+        style={{ color: 'var(--gs-fg-0)' }}
+      >
+        {title}
+      </h3>
+      <p
+        className="mx-auto mt-1.5 max-w-md text-[13px] leading-[1.55]"
+        style={{ color: 'var(--gs-fg-2)' }}
+      >
+        {description}
+      </p>
+      {action ? (
+        <div className="mt-5">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={action.onClick}
+            iconLeft={<RefreshCw size={13} />}
+          >
+            {action.label}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -127,7 +152,7 @@ export function NoDataState() {
   return (
     <EmptyState
       title="No issues found"
-      description="There are no issues matching your current filters. Try adjusting your search criteria."
+      description="There are no issues matching your current filters. Try adjusting the repository, state, or sort options."
       icon="inbox"
     />
   );

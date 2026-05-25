@@ -138,7 +138,7 @@ export function BriefingCard({
   }
 
   return (
-    <section className="mb-6">
+    <section>
       {isLoading && <BriefingSkeleton />}
 
       {!isLoading && error && (
@@ -166,28 +166,29 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
         aria-hidden="true"
         className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${palette.accent}`}
       />
-      <div className="relative p-4 sm:p-5">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
+      <div className="relative p-3 sm:p-5">
+        <header className="flex items-start justify-between gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-start gap-2 sm:gap-3">
             <span
               aria-hidden="true"
-              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary"
+              className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary sm:h-9 sm:w-9"
             >
-              <Sparkles size={16} />
+              <Sparkles size={14} className="sm:hidden" />
+              <Sparkles size={16} className="hidden sm:inline" />
             </span>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground sm:tracking-[0.18em]">
                   Operational Briefing
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${palette.chip}`}
+                  className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider sm:px-2 sm:text-[10px] ${palette.chip}`}
                 >
                   <span aria-hidden="true" className={`inline-block h-1.5 w-1.5 rounded-full ${palette.dot}`} />
                   {toneLabel[briefing.tone]}
                 </span>
               </div>
-              <h2 className="mt-1.5 text-base font-semibold text-foreground sm:text-lg">
+              <h2 className="mt-1 text-[15.5px] font-semibold leading-snug tracking-[-0.01em] text-foreground sm:mt-1.5 sm:text-lg">
                 {briefing.headline}
               </h2>
             </div>
@@ -195,11 +196,11 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
           <SourceChip isLLM={isLLM} model={briefing.model} />
         </header>
 
-        <p className="mt-3 text-sm leading-relaxed text-foreground/90 sm:text-[15px]">
+        <p className="mt-2 line-clamp-4 text-[13.5px] leading-relaxed text-foreground/90 sm:mt-3 sm:line-clamp-none sm:text-[15px]">
           {briefing.summary}
         </p>
 
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 hidden text-[11px] leading-relaxed text-muted-foreground sm:block">
           <span className="font-semibold uppercase tracking-wider text-foreground/60">
             Why this matters ·{' '}
           </span>
@@ -207,7 +208,7 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
         </p>
 
         {briefing.notes.length > 0 && (
-          <div className="mt-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-700 dark:text-amber-200">
+          <div className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1.5 text-[11px] leading-relaxed text-amber-700 dark:text-amber-200 sm:mt-3 sm:px-3 sm:py-2">
             {briefing.notes.join(' ')}
           </div>
         )}
@@ -251,7 +252,7 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
           </details>
         )}
 
-        <footer className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">
+        <footer className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border/60 pt-2 text-[11.5px] text-muted-foreground sm:mt-4 sm:pt-3 sm:text-[11px]">
           <span className="inline-flex items-center gap-1.5">
             <Clock size={11} aria-hidden="true" />
             Updated {generated}
@@ -260,7 +261,7 @@ function BriefingBody({ briefing }: { briefing: WorkspaceBriefing }) {
           <span className="inline-flex items-center gap-1.5">
             Confidence {confidencePct}%
           </span>
-          <span className="ml-auto inline-flex items-center gap-1.5 text-muted-foreground/70">
+          <span className="ml-auto hidden items-center gap-1.5 text-muted-foreground/70 sm:inline-flex">
             {isLLM ? 'AI interpretation grounded in deterministic signals' : 'Deterministic summary'}
           </span>
         </footer>
@@ -275,11 +276,11 @@ function SourceChip({ isLLM, model }: { isLLM: boolean; model: string | null }) 
     const title = formatModelTitle(model, 'llm');
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200"
+        className="inline-flex max-w-[55%] flex-shrink-0 items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 sm:max-w-none"
         title={title}
       >
         <Bot size={11} aria-hidden="true" />
-        AI · {label}
+        <span className="truncate">AI · {label}</span>
       </span>
     );
   }
@@ -290,7 +291,8 @@ function SourceChip({ isLLM, model }: { isLLM: boolean; model: string | null }) 
       title={formatModelTitle(null, 'deterministic')}
     >
       <Cpu size={11} aria-hidden="true" />
-      Deterministic summary
+      <span className="sm:hidden">Deterministic</span>
+      <span className="hidden sm:inline">Deterministic summary</span>
     </span>
   );
 }

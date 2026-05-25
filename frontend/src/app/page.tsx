@@ -7,6 +7,8 @@ import { StatsSection } from '@/components/landing/stats-section';
 import { WorkflowSection } from '@/components/landing/workflow-section';
 import { CTASection } from '@/components/landing/cta-section';
 import { LandingFooter } from '@/components/landing/footer';
+import { AtmosphericLayer } from '@/components/landing/atmospheric-layer';
+import { LenisProvider, ScrollProgress } from '@/components/motion';
 import {
   GITHUB_REPO,
   OG_IMAGE_PATH,
@@ -79,22 +81,51 @@ const structuredData = {
 
 export default function LandingPage() {
   return (
-    <div className="bg-background text-foreground scroll-smooth-container reduce-shift">
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <LandingHeader />
-      <main className="will-animate-gpu">
-        <HeroSection />
-        <FeaturesSection />
-        <ShowcaseSection />
-        <StatsSection />
-        <WorkflowSection />
-        <CTASection />
-      </main>
-      <LandingFooter />
-    </div>
+    <LenisProvider>
+      <div
+        className="relative isolate min-h-screen"
+        style={{
+          background: 'var(--gs-bg-0)',
+          color: 'var(--gs-fg-0)',
+        }}
+      >
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+
+        {/* Global page-wide atmosphere; sections sit transparently on top */}
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          <AtmosphericLayer />
+        </div>
+
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:px-3 focus:py-2 focus:text-[12.5px] focus:font-medium focus-visible:outline-none focus-visible:ring-2"
+          style={{
+            background: 'var(--gs-bg-1)',
+            color: 'var(--gs-fg-0)',
+            border: '1px solid var(--gs-border-default)',
+          }}
+        >
+          Skip to main content
+        </a>
+
+        <ScrollProgress />
+        <LandingHeader />
+
+        <main id="main-content" className="relative">
+          <HeroSection />
+          <FeaturesSection />
+          <ShowcaseSection />
+          <StatsSection />
+          <WorkflowSection />
+          <CTASection />
+        </main>
+
+        <LandingFooter />
+      </div>
+    </LenisProvider>
   );
 }

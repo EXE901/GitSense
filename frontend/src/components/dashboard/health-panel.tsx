@@ -150,20 +150,20 @@ export function HealthPanel({
   }
 
   return (
-    <section className="mb-6">
-      <div className="mb-4 flex flex-col gap-1 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
+    <section>
+      <div className="mb-3 flex flex-col gap-1 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
             <HeartPulse size={14} />
           </span>
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+          <h2 className="text-[17px] font-semibold text-foreground sm:text-xl">
             Workspace Health
           </h2>
           <span className="rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Operational
           </span>
         </div>
-        <p className="text-xs text-muted-foreground sm:text-sm">
+        <p className="text-[12px] leading-snug text-muted-foreground sm:text-sm">
           Weighted across stale pressure, throughput, maintenance, and backlog signals.
         </p>
       </div>
@@ -195,10 +195,10 @@ function WorkspaceCard({ summary }: { summary: WorkspaceHealthSummary }) {
 
   return (
     <article className="rounded-xl border border-border bg-card p-4 sm:p-5 lg:col-span-5">
-      <header className="flex items-start gap-4">
+      <header className="flex items-start gap-3 sm:gap-4">
         <HealthRing score={summary.score} state={summary.state} />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span
               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${palette.chip}`}
             >
@@ -211,16 +211,16 @@ function WorkspaceCard({ summary }: { summary: WorkspaceHealthSummary }) {
               </span>
             )}
           </div>
-          <h3 className="mt-2 text-sm font-semibold text-foreground sm:text-base">
+          <h3 className="mt-2 text-[14px] font-semibold text-foreground sm:text-base">
             Workspace overview
           </h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground sm:text-sm">
             {stateDescriptionText}
           </p>
         </div>
       </header>
 
-      <dl className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs sm:mt-4 sm:grid-cols-4">
         <Metric label="Repositories" value={summary.repository_count.toString()} />
         <Metric label="Indexed issues" value={summary.indexed_issues.toLocaleString()} />
         <Metric label="Avg score" value={summary.average_score.toString()} />
@@ -271,7 +271,7 @@ function HealthRing({ score, state }: { score: number; state: HealthState }) {
   const offset = circumference * (1 - clamped / 100);
 
   return (
-    <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center">
+    <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center sm:h-16 sm:w-16">
       <svg
         viewBox="0 0 64 64"
         className="absolute inset-0 -rotate-90"
@@ -298,7 +298,7 @@ function HealthRing({ score, state }: { score: number; state: HealthState }) {
         />
       </svg>
       <div className="relative text-center">
-        <span className={`block text-base font-bold tabular-nums ${palette.tone}`}>
+        <span className={`block text-[15px] font-bold tabular-nums sm:text-base ${palette.tone}`}>
           {clamped}
         </span>
         <span className="block text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -354,14 +354,14 @@ function ConcentrationBar({
 function RepositoryHealthList({ repositories }: { repositories: RepositoryHealth[] }) {
   if (!repositories || repositories.length === 0) {
     return (
-      <article className="rounded-xl border border-border bg-card p-6 text-center lg:col-span-7">
+      <article className="rounded-xl border border-border bg-card p-5 text-center sm:p-6 lg:col-span-7">
         <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
           <Activity size={18} />
         </div>
         <p className="text-sm font-semibold text-foreground">
           Per-repository health will appear here
         </p>
-        <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-1 max-w-md text-[12.5px] leading-relaxed text-muted-foreground sm:text-xs">
           Sync a repository to see explainable per-repo scores, signals, and confidence.
         </p>
       </article>

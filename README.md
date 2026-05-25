@@ -4,11 +4,11 @@
 
 # GitSense
 
-### WorkFLow intelligence for GitHub workspaces.
+### GitHub-native operational intelligence for engineering teams.
 
-Operational analytics over real GitHub repository data — backlog pressure,
-stale signals, contributor concentration, throughput trends, and grounded
-workspace briefings. Built for engineers, not dashboards.
+Cycle time, contributor signal, and workflow bottlenecks — measured directly
+from the repositories you already trust. Calm operational dashboards backed
+by a cinematic, restrained marketing experience.
 
 </div>
 
@@ -37,38 +37,126 @@ deterministic summarizer so the dashboard always renders.
 
 ---
 
+## Design philosophy
+
+GitSense runs **two motion cultures** in one product:
+
+| Surface | Culture | Engine |
+| --- | --- | --- |
+| Landing, marketing, auth brand panel | Cinematic, layered, choreographed | CSS + IntersectionObserver + Lenis (segment-scoped) |
+| Dashboards, analytics, repositories, settings | Calm, dense, operational | CSS + IntersectionObserver only |
+
+ESLint enforces this at build time — Lenis and Framer Motion are
+forbidden from any operational route chunk. Bundle audits confirm the
+isolation holds.
+
+The visual system is:
+
+- **GitHub-blue accent** (`oklch(0.62 0.16 250)` ≈ `#2F81F7`) on a deep
+  navy canvas, single saturated CTA per viewport
+- **Linear-tight density** in dashboards (13/14 px base, 28 px tabular
+  metric values, 32 px row heights)
+- **Restrained typography** — two display sizes carry the entire hierarchy
+- **Transform + opacity only** for every animation; `prefers-reduced-motion`
+  collapses everything to 120 ms opacity fades
+
+---
+
 ## Screenshots
 
-### Dashboard — desktop
+### Landing — cinematic hero
 
-The dashboard leads with the operational briefing, then layers health,
-metrics, insights, timeline, heatmap, and the issues feed underneath.
-
-<img src="docs/screenshots/02-dashboard-desktop.png" alt="GitSense dashboard, desktop layout" />
-
-### Dashboard — full view
-
-The full layout shows how signals are sequenced: briefing → health →
-metrics → insights → timeline → heatmap → charts → issues.
-
-<img src="docs/screenshots/03-dashboard-full.png" alt="GitSense full dashboard, all sections" />
-
-### Dashboard — mobile
-
-Mobile stacks the same hierarchy vertically with comfortable touch
-targets and no clipping.
-
-<p>
-  <img src="docs/screenshots/04-dashboard-mobile.png" alt="GitSense dashboard on mobile" width="320" />
-</p>
-
-### Landing page
+The hero choreographs per-word reveal, an animated commit-graph SVG,
+and a glowing primary CTA, layered on a page-wide atmospheric
+aurora + grid + constellation field.
 
 <img src="docs/screenshots/01-landing-hero.png" alt="GitSense landing page hero" />
 
-### Authentication
+### Landing — live dashboard showcase
 
-<img src="docs/screenshots/05-auth.png" alt="GitSense sign-in screen" />
+A scroll-pinned section where a stylized dashboard mock tilts, illuminates,
+and reveals its panels as the user scrolls past.
+
+<img src="docs/screenshots/02-landing-showcase.png" alt="GitSense landing showcase" />
+
+### Landing — workflow scrub
+
+A sticky 5-step storytelling diagram. A glowing data packet slides along the
+backbone while step copy crossfades — driven by a single scroll progress
+variable, no Framer Motion.
+
+<img src="docs/screenshots/03-landing-workflow.png" alt="GitSense landing workflow choreography" />
+
+### Dashboard — operational view
+
+The dashboard leads with workspace mode, briefing, and health, then
+layers metrics, insights, timeline, heatmap, charts, and the issues feed
+underneath. Linear-tight density with calm motion.
+
+<img src="docs/screenshots/04-dashboard.png" alt="GitSense dashboard, operational view" />
+
+### Dashboard — metrics grid
+
+Tabular-numeric metric values (28 px medium), 11 px uppercase eyebrows,
+GitHub-blue chip iconography, and blue → cyan sparklines.
+
+<img src="docs/screenshots/05-dashboard-metrics.png" alt="GitSense dashboard metrics grid" />
+
+### Dashboard — charts
+
+Recharts re-skinned to the GitSense token system: calm axes (no axisLine,
+no tickLine), Level-2 tooltips, accent-blue closed-issue series,
+state-open green, accent-cyan label bars.
+
+<img src="docs/screenshots/06-dashboard-charts.png" alt="GitSense analytics charts" />
+
+### Issues feed — Linear-tight
+
+GitHub-native state glyphs (open circle / merged check), inline label
+badges, dense 12 px meta line with relative age, hover-row interaction.
+
+<img src="docs/screenshots/07-issues-feed.png" alt="GitSense issues feed" />
+
+### Authentication — split-screen
+
+Auth inherits the muted atmospheric layer. The left panel carries brand
+identity and the three product pillars; the form column stays calm with
+a single glowing GitHub OAuth CTA.
+
+<img src="docs/screenshots/08-auth-login.png" alt="GitSense sign-in screen" />
+
+### Dashboard — mobile
+
+Mobile keeps the same operational hierarchy with comfortable touch
+targets, an off-canvas sidebar sheet with body scroll-lock, and no
+horizontal overflow. The topbar compresses to short title + live
+status dot + three essential actions; Export and Share collapse into
+the (sm+) action cluster.
+
+<p>
+  <img src="docs/screenshots/09-dashboard-mobile.png" alt="GitSense dashboard on mobile — top of page" width="320" />
+</p>
+
+### Dashboard — mobile metrics grid
+
+MetricsGrid renders as a 2-column compact layout even at 393 px wide.
+Values stay at tabular numerics, sparklines remain blue → cyan, the
+"Pending changes" FilterBar chip and button row tighten into a 2 ×
+grid.
+
+<p>
+  <img src="docs/screenshots/10-dashboard-mobile-metrics.png" alt="GitSense mobile metrics + filter bar" width="320" />
+</p>
+
+### Issues — mobile
+
+Issue rows are touch-safe (12 px vertical padding), labels limit to
+two with a "+N" overflow indicator, and the comments count joins the
+meta line on mobile so the title gets full width.
+
+<p>
+  <img src="docs/screenshots/11-issues-mobile.png" alt="GitSense issues feed on mobile" width="320" />
+</p>
 
 ---
 
@@ -87,6 +175,33 @@ targets and no clipping.
 | **Notifications**                   | Operational events (sync completed, stale warnings, AI insight generated, ...).         |
 | **Guest workspaces**                | Read-only demo sessions with strict per-session repository limits.                      |
 | **GitHub / Google OAuth + email**   | Persistent workspaces are owned by authenticated users.                                 |
+
+---
+
+## Frontend motion system
+
+GitSense ships a small, self-contained motion library. Every primitive is
+GPU-friendly (`transform`, `opacity` only) and honors
+`prefers-reduced-motion`.
+
+| Primitive | Purpose |
+| --- | --- |
+| `<Reveal>` | Single-element IntersectionObserver reveal (opacity + translateY). |
+| `<RevealGroup>` | Stagger direct children using a CSS custom-property index. |
+| `<WordReveal>` | Per-word headline reveal; words remain selectable. |
+| `<Counter>` | rAF-driven numeric ramp; honors reduced-motion. |
+| `<Shimmer>` | Canonical skeleton primitive. |
+| `<Marquee>` | CSS-only horizontal scroller, edge-masked, reduced-motion safe. |
+| `<ScrollProgress>` | 2 px top-of-viewport progress bar (transform-only). |
+| `<RouteFade>` | 180 ms opacity cross-fade on path change. |
+| `<MagneticTarget>` | Cursor-attracted CTA (marketing only; touch + reduced-motion safe). |
+| `<LenisProvider>` | Smooth scroll, dynamic-imported, segment-scoped. |
+| `<AtmosphericLayer>` | Aurora + grid + constellation + scanline + vignette. |
+
+The reusable UI primitives — `Button`, `Card` / `PanelHeader`, `Surface`,
+`Badge`, `Tag`, `Stack`, `Divider`, `Eyebrow`, `Kbd` — consume a single
+token system (`--gs-*` CSS custom properties) so dashboards and marketing
+share one language without sharing motion intensity.
 
 ---
 
@@ -177,9 +292,11 @@ milliseconds.
 | ------------ | ------------------------------------- |
 | Framework    | Next.js 16 (App Router)               |
 | Language     | TypeScript                            |
-| Styling      | Tailwind CSS 4                        |
+| Styling      | Tailwind CSS 4 + OKLCH token system   |
+| Type         | Inter (UI) + JetBrains Mono (code/SHAs) via `next/font` |
 | Icons        | lucide-react                          |
 | Charts       | recharts                              |
+| Smooth scroll| Lenis (marketing + auth segments only) |
 | Analytics    | `@vercel/analytics` (production only) |
 
 **Backend**
@@ -228,7 +345,8 @@ echo "NEXT_PUBLIC_API_BASE_URL=http://localhost:8000" > .env.local
 npm run dev
 ```
 
-Frontend runs at `http://localhost:3000`.
+Frontend runs at `http://localhost:3000`. The Next.js dev indicator
+is intentionally disabled so demo screenshots stay clean.
 
 ### Validation
 
@@ -238,12 +356,11 @@ python -m py_compile backend/app/main.py
 
 # Frontend
 cd frontend
-npx tsc --noEmit
-npx eslint .
-npx next build
+npm run lint
+npm run build
 ```
 
-All four commands should exit with status 0 and zero warnings.
+All commands should exit with status 0 and zero warnings.
 
 ---
 
@@ -275,6 +392,7 @@ OG / Twitter image URLs).
 GitSense/
 ├── AGENTS.md                  # Global engineering rules
 ├── README.md                  # This file
+├── report.txt                 # Implementation report
 ├── docs/
 │   ├── DEPLOYMENT.md          # Deployment recipe
 │   └── screenshots/           # Real screenshots used in README
@@ -289,13 +407,6 @@ GitSense/
 │   └── app/
 │       ├── api/               # Route handlers (thin)
 │       ├── services/          # Business logic
-│       │   ├── ai_briefing_service.py
-│       │   ├── analytics_service.py
-│       │   ├── insight_engine.py
-│       │   ├── health_service.py
-│       │   ├── heatmap_service.py
-│       │   ├── signal_bundle_service.py
-│       │   └── ... (auth, github, ownership, ...)
 │       ├── models/            # SQLAlchemy models
 │       ├── schemas/           # Pydantic schemas
 │       ├── database/          # DB setup / session
@@ -304,10 +415,19 @@ GitSense/
 └── frontend/
     ├── AGENTS.md              # Frontend rules
     ├── package.json
-    ├── public/                # Branding assets (symbol.svg, ...)
+    ├── public/                # Branding assets
     └── src/
         ├── app/               # App Router routes
-        ├── components/        # UI components
+        │   ├── (auth)/        # Auth segment (Lenis allowed)
+        │   ├── (app)/         # Operational segment (Lenis forbidden)
+        │   └── page.tsx       # Landing (Lenis allowed)
+        ├── components/
+        │   ├── motion/        # CSS+IO motion primitives
+        │   ├── primitives/    # UI primitives
+        │   ├── landing/       # Marketing sections
+        │   ├── dashboard/     # Operational panels
+        │   ├── auth/          # Auth forms
+        │   └── layout/        # Shells (AppShell, AuthSplitLayout)
         ├── hooks/
         └── lib/               # API helpers, sanitization
 ```
@@ -329,6 +449,9 @@ GitSense/
   says so — it does not pad output to look busy.
 - **Sanitized exports.** CSV cells are formula-injection-safe;
   Markdown exports escape user-controlled strings.
+- **Bundle isolation.** Lenis and Framer Motion are forbidden from
+  every operational chunk — enforced by an ESLint
+  `no-restricted-imports` rule and verified by bundle audit.
 
 ---
 
@@ -341,6 +464,10 @@ GitSense/
 - Configurable insight thresholds (currently hard-coded sensible
   defaults).
 - Browser extension integration for in-context GitHub overlays.
+- Re-skin the remaining dashboard panels (BriefingCard, HealthPanel,
+  InsightsPanel, InsightTimeline, DeveloperActivityPanel, ActivityHeatmap)
+  through the new token system; they currently use the legacy oklch
+  variables and render harmoniously alongside the redesigned panels.
 
 ---
 

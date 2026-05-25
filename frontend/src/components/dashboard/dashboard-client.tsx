@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ActivityHeatmap } from '@/components/dashboard/activity-heatmap';
 import { BriefingCard } from '@/components/dashboard/briefing-card';
@@ -15,6 +14,14 @@ import { InsightsPanel } from '@/components/dashboard/insights-panel';
 import { IssuesFeed } from '@/components/dashboard/issues-feed';
 import { DashboardSkeleton } from '@/components/dashboard/loading-skeleton';
 import { MetricsGrid } from '@/components/dashboard/metrics-grid';
+import {
+  DashboardInitializationBanner,
+  FirstSyncGuidance,
+  RepositoryWorkflowBanner,
+  VerificationWarningBanner,
+  WorkspaceModeBanner,
+} from '@/components/dashboard/dashboard-banners';
+import { buildPreviewOverview } from '@/components/dashboard/dashboard-preview';
 import { useAuth } from '@/components/auth/auth-provider';
 import {
   fetchStoredIssues,
@@ -24,7 +31,6 @@ import {
   type IssuesResponse,
   type PreviewRepositoryResponse,
 } from '@/lib/issues';
-import type { DashboardOverview } from '@/lib/analytics';
 import { getUserTrustTier } from '@/lib/settings';
 import {
   fetchRepositories,
@@ -64,6 +70,7 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [recentRepositories, setRecentRepositories] = useState<RepositoryHistoryItem[]>([]);
+
   const guestSessionId = guestSession?.guest_session_id ?? null;
   const hasOwnershipContext =
     status === 'authenticated'
@@ -72,10 +79,7 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
         ? Boolean(guestSessionId)
         : false;
   const ownership = useMemo(
-    () => ({
-      token,
-      guestSessionId,
-    }),
+    () => ({ token, guestSessionId }),
     [guestSessionId, token]
   );
   const isPreviewMode = Boolean(previewData);
@@ -83,19 +87,16 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
   const trustTier = getUserTrustTier(user);
   const showVerificationWarning =
     status === 'authenticated' && trustTier === 'email_unverified';
-  const isDashboardInitializing = !hasOwnershipContext || (!isPreviewMode && isLoading && !data);
+  const isDashboardInitializing =
+    !hasOwnershipContext || (!isPreviewMode && isLoading && !data);
 
+  // Load stored issues
   useEffect(() => {
-    if (!hasOwnershipContext || isPreviewMode) {
-      return;
-    }
-
+    if (!hasOwnershipContext || isPreviewMode) return;
     const controller = new AbortController();
-
     async function loadIssues() {
       setIsLoading(true);
       setErrorMessage(null);
-
       try {
         const issuesResponse = await fetchStoredIssues(
           query,
@@ -104,36 +105,25 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
         );
         setData(issuesResponse);
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-
+        if (error instanceof DOMException && error.name === 'AbortError') return;
         setErrorMessage(
           error instanceof Error ? error.message : 'Unable to load stored issues.'
         );
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     }
-
     loadIssues();
-
     return () => controller.abort();
   }, [guestSessionId, hasOwnershipContext, isPreviewMode, query, refreshToken, token]);
 
+  // Load recent repositories
   useEffect(() => {
-    if (status !== 'authenticated' || !token) {
-      return;
-    }
-
+    if (status !== 'authenticated' || !token) return;
     const controller = new AbortController();
-
     fetchRepositories({ token }, controller.signal)
       .then((repositories) => setRecentRepositories(repositories))
       .catch(() => setRecentRepositories([]));
-
     return () => controller.abort();
   }, [refreshToken, status, token]);
 
@@ -152,27 +142,21 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
     draftQuery.sortBy !== query.sortBy ||
     draftQuery.sortDirection !== query.sortDirection;
 
+  // External refresh event
   useEffect(() => {
     function refreshIssues() {
       setRefreshToken((current) => current + 1);
     }
-
     window.addEventListener('gitsense:refresh-issues', refreshIssues);
     return () => window.removeEventListener('gitsense:refresh-issues', refreshIssues);
   }, []);
 
   useEffect(() => {
-    if (isDemoMode) {
-      seedDemoNotificationsOnce();
-    }
+    if (isDemoMode) seedDemoNotificationsOnce();
   }, [isDemoMode]);
 
   function applyFilters() {
-    const nextQuery = {
-      ...draftQuery,
-      page: 1,
-    };
-
+    const nextQuery = { ...draftQuery, page: 1 };
     setPreviewData(null);
     setData(null);
     setIsLoading(true);
@@ -190,23 +174,14 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
 
   async function handlePreviewRepository(repository: string, page = 1): Promise<boolean> {
     const normalizedRepository = repository.trim();
-
     setSyncMessage(null);
     setErrorMessage(null);
-
     if (!normalizedRepository.includes('/')) {
       setErrorMessage('Enter a repository in owner/repo format, for example microsoft/vscode.');
       return false;
     }
-
-    const previewQuery = {
-      ...draftQuery,
-      repo: normalizedRepository,
-      page,
-    };
-
+    const previewQuery = { ...draftQuery, repo: normalizedRepository, page };
     setIsPreviewing(true);
-
     try {
       const result = await previewRepository(normalizedRepository, previewQuery);
       setPreviewData(result);
@@ -227,12 +202,7 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
   }
 
   function handleScopeRepository(repository: string) {
-    const nextQuery = {
-      ...query,
-      repo: repository,
-      page: 1,
-    };
-
+    const nextQuery = { ...query, repo: repository, page: 1 };
     setPreviewData(null);
     setData(null);
     setIsLoading(true);
@@ -241,12 +211,7 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
   }
 
   function handleClearRepositoryScope() {
-    const nextQuery = {
-      ...query,
-      repo: '',
-      page: 1,
-    };
-
+    const nextQuery = { ...query, repo: '', page: 1 };
     setPreviewData(null);
     setData(null);
     setIsLoading(true);
@@ -256,27 +221,21 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
 
   async function handleSyncRepository(repository: string): Promise<boolean> {
     const normalizedRepository = repository.trim();
-
     setSyncMessage(null);
     setErrorMessage(null);
-
     if (!normalizedRepository.includes('/')) {
       setErrorMessage('Enter a repository in owner/repo format, for example microsoft/vscode.');
       return false;
     }
-
     setIsSyncing(true);
     setSyncRepositoryName(normalizedRepository);
     setSyncStage('Fetching repository metadata and issue pages');
 
     try {
-      const result = await scrapeRepositoryWithOwnership(
-        normalizedRepository,
-        {
-          token,
-          guestSessionId,
-        }
-      );
+      const result = await scrapeRepositoryWithOwnership(normalizedRepository, {
+        token,
+        guestSessionId,
+      });
       setSyncStage('Updating workspace analytics');
       setSyncMessage(
         `Indexed ${result.indexed_issues} issues from ${result.repo}. GitHub reports ${result.total_issues.toLocaleString()} total issues.`
@@ -337,14 +296,12 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
       setRecentRepositories((current) =>
         current.filter((item) => item.id !== repository.id)
       );
-
       if (activeRepositoryScope === repository.full_name) {
         handleClearRepositoryScope();
       } else {
         setData(null);
         setIsLoading(true);
       }
-
       setSyncMessage(`${repository.full_name} was removed from this workspace.`);
       pushLocalNotification({
         kind: 'repository_removed',
@@ -383,7 +340,7 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
 
   if (isDashboardInitializing) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <DashboardInitializationBanner />
         <DashboardSkeleton />
       </div>
@@ -391,63 +348,13 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <section
-        className={`rounded-xl border p-4 ${
-          isDemoMode
-            ? 'border-cyan-400/30 bg-cyan-400/[0.07]'
-            : 'border-border bg-card'
-        }`}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              {isDemoMode && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-200">
-                  Demo
-                </span>
-              )}
-              {isDemoMode
-                ? 'Live demo workspace'
-                : status === 'authenticated'
-                  ? 'Persistent workspace'
-                  : 'Guest demo workspace'}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {isDemoMode
-                ? 'Read-only demo view with seeded notifications and sample analytics. Nothing here is saved to a real account.'
-                : status === 'authenticated'
-                  ? `Signed in as ${user?.github_username ? `@${user.github_username}` : user?.email}. Repository history is saved to your account.`
-                  : 'Explore GitSense with temporary analytics. Sign up when you are ready to keep long-term history.'}
-            </p>
-          </div>
-          {isDemoMode ? (
-            <Link
-              href="/signup"
-              className="inline-flex w-fit items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-smooth hover:bg-primary/15"
-            >
-              Connect your GitHub
-            </Link>
-          ) : (
-            status !== 'authenticated' && guestSession && (
-              <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary sm:items-end">
-                <span>
-                  {guestSession.remaining_repositories} of {guestSession.repo_limit} demo repository syncs remaining
-                </span>
-                {guestSession.remaining_repositories === 0 && (
-                  <Link href="/signup" className="font-semibold underline-offset-4 hover:underline">
-                    Create an account to keep syncing
-                  </Link>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      </section>
-
-      {status === 'authenticated' && (
-        <DeveloperActivityPanel token={token} refreshTrigger={refreshToken} />
-      )}
+    <div className="space-y-4 sm:space-y-6">
+      <WorkspaceModeBanner
+        isDemoMode={isDemoMode}
+        status={status}
+        user={user}
+        guestSession={guestSession}
+      />
 
       {showVerificationWarning && <VerificationWarningBanner />}
 
@@ -480,7 +387,16 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
       )}
 
       {syncMessage && (
-        <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-300">
+        <div
+          className="rounded-[10px] border px-4 py-3 text-[12.5px]"
+          style={{
+            background:
+              'color-mix(in oklch, var(--gs-state-open) 10%, transparent)',
+            borderColor:
+              'color-mix(in oklch, var(--gs-state-open) 30%, transparent)',
+            color: 'var(--gs-state-open)',
+          }}
+        >
           {syncMessage}
         </div>
       )}
@@ -498,7 +414,15 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
       {isAuthenticatedEmptyWorkspace && (
         <FirstSyncGuidance
           username={user?.github_username ?? null}
+          onPick={(repository) => {
+            setDraftQuery((current) => ({ ...current, repo: repository }));
+            void handlePreviewRepository(repository);
+          }}
         />
+      )}
+
+      {status === 'authenticated' && !isAuthenticatedEmptyWorkspace && (
+        <DeveloperActivityPanel token={token} refreshTrigger={refreshToken} />
       )}
 
       {showBriefing && (
@@ -571,7 +495,6 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
               void handlePreviewRepository(previewData.repo, page);
               return;
             }
-
             setQuery((current) => ({ ...current, page }));
             setDraftQuery((current) => ({ ...current, page }));
           }}
@@ -579,182 +502,4 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
       )}
     </div>
   );
-}
-
-function VerificationWarningBanner() {
-  return (
-    <section className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-amber-100">
-            Verify your email to unlock unlimited repository synchronization.
-          </p>
-          <p className="mt-1 text-xs text-amber-100/70">
-            Unverified email accounts can sync 3 repositories per hour while GitSense protects workspace reliability.
-          </p>
-        </div>
-        <Link
-          href="/settings"
-          className="inline-flex w-fit rounded-lg border border-amber-300/30 px-3 py-2 text-xs font-semibold text-amber-100 transition-smooth hover:bg-amber-300/10"
-        >
-          Review settings
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function DashboardInitializationBanner() {
-  return (
-    <section className="rounded-xl border border-border bg-card p-4 animate-fade-in">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Preparing GitSense workspace</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Restoring your session, repository context, and workspace analytics.
-          </p>
-        </div>
-        <div className="flex w-fit items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-          Hydrating
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function RepositoryWorkflowBanner({
-  isPreviewMode,
-  repository,
-  syncStage,
-  isSyncing,
-  onSync,
-}: {
-  isPreviewMode: boolean;
-  repository: string;
-  syncStage: string | null;
-  isSyncing: boolean;
-  onSync: () => Promise<boolean>;
-}) {
-  return (
-    <section className="rounded-xl border border-primary/20 bg-primary/10 p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-primary">
-            {isSyncing ? 'Repository sync in progress' : 'Repository preview mode'}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {isSyncing
-              ? `${syncStage ?? 'Syncing repository'}${repository ? ` for ${repository}` : ''}.`
-              : isPreviewMode
-              ? `${repository} is being inspected temporarily. Sync it when you want to save it to your workspace.`
-              : syncStage ?? 'Preparing repository synchronization.'}
-          </p>
-        </div>
-        {isPreviewMode && (
-          <button
-            type="button"
-            onClick={() => void onSync()}
-            disabled={isSyncing}
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-smooth hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSyncing ? 'Syncing...' : 'Sync to workspace'}
-          </button>
-        )}
-        {!isPreviewMode && (
-          <div className="flex w-fit items-center gap-2 rounded-lg border border-primary/20 bg-background/40 px-3 py-2 text-xs text-primary">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-            {syncStage ?? 'Syncing'}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function FirstSyncGuidance({ username }: { username: string | null }) {
-  const items: { title: string; detail: string }[] = [
-    {
-      title: 'Backlog pressure',
-      detail: 'Stale open issues, age distribution, and unresolved load per repository.',
-    },
-    {
-      title: 'Throughput trend',
-      detail: 'Open vs closed velocity over time, including weeks where throughput slipped.',
-    },
-    {
-      title: 'Contributor concentration',
-      detail: 'How much workspace activity sits on a small number of contributors.',
-    },
-    {
-      title: 'Operational risk signals',
-      detail: 'Recurring patterns the engine flags as worth watching, with severity history.',
-    },
-  ];
-
-  return (
-    <section className="rounded-xl border border-primary/25 bg-primary/[0.06] p-5">
-      <div className="flex flex-col gap-1">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary/80">
-          Get your first operational briefing
-        </p>
-        <h3 className="text-base font-semibold text-foreground sm:text-lg">
-          {username
-            ? `Welcome, @${username}. Sync a repository to start analysis.`
-            : 'Sync a repository to start workspace analysis.'}
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          GitSense reads your synced repositories and produces a grounded operational briefing.
-          Nothing is fabricated — every signal traces back to real GitHub data.
-        </p>
-      </div>
-      <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-        {items.map((item) => (
-          <li
-            key={item.title}
-            className="rounded-lg border border-border/60 bg-background/60 p-3"
-          >
-            <p className="text-xs font-semibold text-foreground">{item.title}</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              {item.detail}
-            </p>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
-        Enter a repository as <code className="rounded bg-secondary/60 px-1 py-0.5 text-[10px] text-foreground">owner/repo</code>{' '}
-        in the filter bar above and choose <span className="font-semibold text-foreground/80">Sync</span> to index it. Preview is also available without saving.
-      </p>
-    </section>
-  );
-}
-
-function buildPreviewOverview(preview: PreviewRepositoryResponse): DashboardOverview {
-  const totalComments = preview.issues.reduce((sum, issue) => sum + issue.comments, 0);
-  const uniqueLabels = new Set(preview.issues.flatMap((issue) => issue.labels));
-  const staleCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
-  const staleIssues = preview.issues.filter((issue) => {
-    const updatedAt = new Date(issue.updated_at).getTime();
-
-    return issue.state === 'open' && Number.isFinite(updatedAt) && updatedAt < staleCutoff;
-  });
-
-  return {
-    total_issues: preview.repository.total_issues_count,
-    open_issues: preview.repository.open_issues_count,
-    closed_issues: preview.repository.closed_issues_count,
-    indexed_issues: preview.indexed_issues,
-    avg_comments_per_issue:
-      preview.issues.length > 0 ? totalComments / preview.issues.length : 0,
-    repositories_tracked: 1,
-    unique_labels: uniqueLabels.size,
-    open_closed_ratio:
-      preview.repository.closed_issues_count > 0
-        ? preview.repository.open_issues_count / preview.repository.closed_issues_count
-        : preview.repository.open_issues_count,
-    stale_issues_count: staleIssues.length,
-    stars_count: preview.repository.stars_count,
-    forks_count: preview.repository.forks_count,
-    watchers_count: preview.repository.watchers_count,
-  };
 }

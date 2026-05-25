@@ -98,20 +98,20 @@ export function InsightTimeline({
   }
 
   return (
-    <section className="mb-6">
+    <section>
       <div className="mb-4 flex flex-col gap-1 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
             <History size={14} />
           </span>
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+          <h2 className="text-[17px] font-semibold text-foreground sm:text-xl">
             Insight Timeline
           </h2>
           <span className="rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Recurrence
           </span>
         </div>
-        <p className="text-xs text-muted-foreground sm:text-sm">
+        <p className="text-[12.5px] text-muted-foreground sm:text-sm">
           Persistent operational signals, first seen and most recently observed.
         </p>
       </div>
