@@ -110,21 +110,6 @@ state-open green, accent-cyan label bars.
 
 <img src="docs/screenshots/06-dashboard-charts.png" alt="GitSense analytics charts" />
 
-### Issues feed — Linear-tight
-
-GitHub-native state glyphs (open circle / merged check), inline label
-badges, dense 12 px meta line with relative age, hover-row interaction.
-
-<img src="docs/screenshots/07-issues-feed.png" alt="GitSense issues feed" />
-
-### Authentication — split-screen
-
-Auth inherits the muted atmospheric layer. The left panel carries brand
-identity and the three product pillars; the form column stays calm with
-a single glowing GitHub OAuth CTA.
-
-<img src="docs/screenshots/08-auth-login.png" alt="GitSense sign-in screen" />
-
 ### Dashboard — mobile
 
 Mobile keeps the same operational hierarchy with comfortable touch
