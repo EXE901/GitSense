@@ -82,7 +82,7 @@ export function FeaturesSection() {
               return (
                 <article
                   key={pillar.number}
-                  className="group relative flex flex-col rounded-[14px] border p-6 transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] sm:p-8"
+                  className="ambient-card group relative flex flex-col rounded-[14px] border p-6 transition-colors duration-[var(--dur-base)] ease-[var(--ease-standard)] sm:p-8"
                   style={{
                     background:
                       'linear-gradient(180deg, color-mix(in oklch, var(--gs-bg-1) 92%, transparent), color-mix(in oklch, var(--gs-bg-1) 70%, transparent))',

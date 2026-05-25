@@ -163,7 +163,19 @@ export function WorkflowSection() {
 
           {/* Desktop scrub diagram */}
           <div className="relative hidden lg:block">
-            <svg viewBox="0 0 960 120" className="w-full" aria-hidden="true">
+            {/* Timeline strip — SVG + icon overlay share this
+                aspect-ratio-locked container so the icons land
+                INSIDE the circle nodes (not below the strip).
+                Aspect ratio matches the SVG viewBox (960:120). */}
+            <div
+              className="relative w-full"
+              style={{ aspectRatio: '960 / 120' }}
+            >
+              <svg
+                viewBox="0 0 960 120"
+                className="absolute inset-0 h-full w-full"
+                aria-hidden="true"
+              >
               <line
                 x1={NODE_X[0]}
                 y1={NODE_Y}
@@ -226,7 +238,30 @@ export function WorkflowSection() {
                   </text>
                 </g>
               ))}
-            </svg>
+              </svg>
+
+              {/* Per-step icon overlay — sits INSIDE the aspect-locked
+                  timeline strip so each icon is centered on its
+                  node circle. Lit by [data-active-step] cascade as
+                  the scroll progress fills past that node. */}
+              <div className="gs-workflow-icons pointer-events-none absolute inset-0">
+                {STEPS.map((s, i) => {
+                  const Icon = s.icon;
+                  const leftPct = (NODE_X[i] / 960) * 100;
+                  return (
+                    <div
+                      key={i}
+                      data-node-step={i}
+                      className="gs-workflow-icon"
+                      style={{ left: `${leftPct}%` }}
+                      aria-hidden="true"
+                    >
+                      <Icon size={18} strokeWidth={1.75} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Step copy (CSS-driven crossfade based on data-active-step) */}
             <div className="relative mt-14 min-h-[140px]">
@@ -279,7 +314,7 @@ export function WorkflowSection() {
               return (
                 <div
                   key={i}
-                  className="grid grid-cols-[auto_1fr] gap-4 rounded-[12px] border p-4"
+                  className="ambient-card grid grid-cols-[auto_1fr] gap-4 rounded-[12px] border p-4"
                   style={{
                     background: 'color-mix(in oklch, var(--gs-bg-1) 92%, transparent)',
                     borderColor: 'var(--gs-border-default)',

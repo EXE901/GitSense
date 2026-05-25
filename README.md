@@ -64,11 +64,18 @@ The visual system is:
 
 ## Screenshots
 
+> All captures below are taken in dark mode at 1440 × 900 (desktop)
+> or 390 × 844 / 768 × 1024 (mobile / tablet). The constellation
+> field is now tuned for both themes — dark and light — so the
+> network reads at first glance regardless of system preference.
+
 ### Landing — cinematic hero
 
 The hero choreographs per-word reveal, an animated commit-graph SVG,
 and a glowing primary CTA, layered on a page-wide atmospheric
-aurora + grid + constellation field.
+aurora + grid + constellation field. Constellation visibility was
+recently calibrated so the topology reads with equal confidence in
+both dark (0.27 outer opacity) and light (0.34) modes.
 
 <img src="docs/screenshots/01-landing-hero.png" alt="GitSense landing page hero" />
 
@@ -81,9 +88,12 @@ and reveals its panels as the user scrolls past.
 
 ### Landing — workflow scrub
 
-A sticky 5-step storytelling diagram. A glowing data packet slides along the
-backbone while step copy crossfades — driven by a single scroll progress
-variable, no Framer Motion.
+A sticky 5-step storytelling diagram. A glowing data packet slides along
+the backbone while step copy crossfades — driven by a single scroll
+progress variable, no Framer Motion. Each phase carries its own icon
+(`Connect`, `Ingest`, `Analyze`, `Surface`, `Operate`) which sits dim
+along the timeline and **lights up with an accent glow the moment the
+filling line reaches it** — a small, restrained progress affordance.
 
 <img src="docs/screenshots/03-landing-workflow.png" alt="GitSense landing workflow choreography" />
 

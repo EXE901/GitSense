@@ -87,7 +87,7 @@ export function HeroSection() {
               </Link>
             </MagneticTarget>
             <Link href="/dashboard?demo=1" className="contents">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="ambient-card w-full sm:w-auto">
                 Explore Live Demo
               </Button>
             </Link>
