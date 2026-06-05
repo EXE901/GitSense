@@ -1571,3 +1571,126 @@
   }
 }
 
+
+/* ============================================================== */
+/* GitSense product tour + help system                            */
+/* ============================================================== */
+
+/* Reserved by future bottom navigation. Help button positions    */
+/* itself above this value so it never collides with a bottom nav.*/
+:root {
+  --gs-bottom-nav-height: 0px;
+}
+
+/* driver.js popover theming — overrides the bundled defaults so   */
+/* the tour reads as native GitSense surface, not a third-party UI.*/
+.gs-driver-popover.driver-popover {
+  background: var(--gs-bg-1);
+  color: var(--gs-fg-0);
+  border: 1px solid var(--gs-border-default);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+  font-family: inherit;
+  max-width: 360px;
+  padding: 16px;
+}
+
+.gs-driver-popover .driver-popover-title {
+  color: var(--gs-fg-0);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px 0;
+}
+
+.gs-driver-popover .driver-popover-description {
+  color: var(--gs-fg-1);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.gs-driver-popover .driver-popover-footer {
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.gs-driver-popover .driver-popover-progress-text {
+  color: var(--gs-fg-2);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gs-driver-popover .driver-popover-navigation-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.gs-driver-popover button.driver-popover-prev-btn,
+.gs-driver-popover button.driver-popover-next-btn,
+.gs-driver-popover button.driver-popover-close-btn {
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 12.5px;
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-shadow: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.gs-driver-popover button.driver-popover-prev-btn {
+  background: transparent;
+  color: var(--gs-fg-1);
+  border: 1px solid var(--gs-border-default);
+}
+
+.gs-driver-popover button.driver-popover-prev-btn:hover {
+  background: var(--gs-bg-2);
+  color: var(--gs-fg-0);
+}
+
+.gs-driver-popover button.driver-popover-next-btn {
+  background: var(--gs-accent-primary);
+  color: white;
+  border: 1px solid var(--gs-accent-primary);
+}
+
+.gs-driver-popover button.driver-popover-next-btn:hover {
+  background: var(--gs-accent-primary-hover);
+  border-color: var(--gs-accent-primary-hover);
+}
+
+.gs-driver-popover button.driver-popover-close-btn {
+  color: var(--gs-fg-2);
+}
+
+.gs-driver-popover button.driver-popover-close-btn:hover {
+  color: var(--gs-fg-0);
+  background: var(--gs-bg-2);
+}
+
+.gs-driver-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--gs-bg-1);
+}
+.gs-driver-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--gs-bg-1);
+}
+.gs-driver-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--gs-bg-1);
+}
+.gs-driver-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--gs-bg-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-driver-popover,
+  .gs-driver-popover * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+

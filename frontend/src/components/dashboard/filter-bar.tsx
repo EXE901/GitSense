@@ -78,6 +78,7 @@ export function FilterBar({
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <RepositorySearchInput
+          inputId="gs-repo-search-input"
           value={query.repo}
           onChange={(next) => onChange({ repo: next })}
           onSelect={(fullName) => onChange({ repo: fullName })}
@@ -191,7 +192,7 @@ export function FilterBar({
   );
 
   return (
-    <section>
+    <section data-tour="repo-search">
       {/* MOBILE ------------------------------------------------------------- */}
       <div className="sm:hidden">
         <div

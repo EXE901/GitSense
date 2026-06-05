@@ -22,6 +22,7 @@ import {
   WorkspaceModeBanner,
 } from '@/components/dashboard/dashboard-banners';
 import { buildPreviewOverview } from '@/components/dashboard/dashboard-preview';
+import { TourBanner } from '@/components/tour/tour-banner';
 import { useAuth } from '@/components/auth/auth-provider';
 import {
   fetchStoredIssues,
@@ -358,6 +359,13 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
 
       {showVerificationWarning && <VerificationWarningBanner />}
 
+      {view === 'dashboard' && !isPreviewMode && !isSyncing && (
+        <TourBanner
+          isDemoMode={isDemoMode}
+          hasRepositories={recentRepositories.length > 0}
+        />
+      )}
+
       <FilterBar
         query={draftQuery}
         hasPendingChanges={hasPendingFilterChanges}
@@ -426,29 +434,35 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
       )}
 
       {showBriefing && (
-        <BriefingCard
-          ownership={ownership}
-          refreshTrigger={refreshToken}
-          isReady={hasOwnershipContext}
-          repo={activeRepositoryScope}
-        />
+        <div data-tour="briefing">
+          <BriefingCard
+            ownership={ownership}
+            refreshTrigger={refreshToken}
+            isReady={hasOwnershipContext}
+            repo={activeRepositoryScope}
+          />
+        </div>
       )}
       {showHealth && (
-        <HealthPanel
-          ownership={ownership}
-          refreshTrigger={refreshToken}
-          isReady={hasOwnershipContext}
-          repo={activeRepositoryScope}
-        />
+        <div data-tour="health">
+          <HealthPanel
+            ownership={ownership}
+            refreshTrigger={refreshToken}
+            isReady={hasOwnershipContext}
+            repo={activeRepositoryScope}
+          />
+        </div>
       )}
       {showMetrics && (
-        <MetricsGrid
-          ownership={ownership}
-          refreshTrigger={refreshToken}
-          isReady={hasOwnershipContext}
-          repo={activeRepositoryScope}
-          overviewOverride={previewOverview}
-        />
+        <div data-tour="metrics">
+          <MetricsGrid
+            ownership={ownership}
+            refreshTrigger={refreshToken}
+            isReady={hasOwnershipContext}
+            repo={activeRepositoryScope}
+            overviewOverride={previewOverview}
+          />
+        </div>
       )}
       {showInsights && (
         <InsightsPanel
@@ -484,21 +498,23 @@ export function DashboardClient({ view = 'dashboard' }: DashboardClientProps) {
         />
       )}
       {showIssues && (
-        <IssuesFeed
-          issues={issues}
-          isLoading={!isPreviewMode && isLoading}
-          page={previewData?.page ?? query.page}
-          limit={previewData?.limit ?? query.limit}
-          totalIssues={totalIssues}
-          onPageChange={(page) => {
-            if (previewData) {
-              void handlePreviewRepository(previewData.repo, page);
-              return;
-            }
-            setQuery((current) => ({ ...current, page }));
-            setDraftQuery((current) => ({ ...current, page }));
-          }}
-        />
+        <div data-tour="issues">
+          <IssuesFeed
+            issues={issues}
+            isLoading={!isPreviewMode && isLoading}
+            page={previewData?.page ?? query.page}
+            limit={previewData?.limit ?? query.limit}
+            totalIssues={totalIssues}
+            onPageChange={(page) => {
+              if (previewData) {
+                void handlePreviewRepository(previewData.repo, page);
+                return;
+              }
+              setQuery((current) => ({ ...current, page }));
+              setDraftQuery((current) => ({ ...current, page }));
+            }}
+          />
+        </div>
       )}
     </div>
   );

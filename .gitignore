@@ -1,9 +1,13 @@
-# Dependencies
+# ============================================================
+# GitSense — root .gitignore
+# ============================================================
+
+# -- Dependencies --------------------------------------------
 node_modules/
 backend/venv/
 backend/.venv/
 
-# Build artifacts
+# -- Build artifacts -----------------------------------------
 frontend/.next/
 frontend/out/
 frontend/build/
@@ -11,83 +15,92 @@ frontend/*.tsbuildinfo
 **/__pycache__/
 *.pyc
 
-# Environment files
+# -- Environment files ---------------------------------------
 backend/.env
 backend/.env.local
 backend/.env.*.local
 frontend/.env.local
 frontend/.env.*.local
+.env
+.env.local
 
-# Local databases
+# -- Local databases -----------------------------------------
 *.sqlite
 *.sqlite3
 *.db
 
-# Logs
+# -- Logs ----------------------------------------------------
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.dev-log*.txt
 
-# Test / scratch artifacts
+# -- Test / scratch artifacts --------------------------------
 cookies.txt
 ai-briefing-live.json
 *.har
+report.txt
+*-report.txt
+audit-*.md
+migration-*.md
+implementation-*.md
 
-# Screenshots from Playwright sweeps (kept under .playwright-mcp/)
+# -- Generated / MCP / Playwright screenshots ----------------
+# Curated repository screenshots (used by README) live in
+# docs/screenshots/ and ARE committed. Any other PNG at root
+# or in tour/test directories is treated as a scratch artifact.
 .playwright-mcp/
-/*-screenshot.png
+playwright-report/
+test-results/
+/tour-*.png
+/audit-*.png
+/qa-*.png
+/test-*.png
+/screenshot-*.png
 /final-*.png
 /dashboard-*.png
-/screenshot-*.png
+/*-screenshot.png
 
-# Curated repository screenshots (used by README) — keep these.
+# Keep curated screenshots used by the README.
 !docs/screenshots/
 !docs/screenshots/**
 
-# Quarantined files awaiting review
+# -- Quarantined / archived ----------------------------------
 .cleanup_review/
-
-# Archived debris (old playwright captures, scratch screenshots,
-# review notes). Kept on disk for reference but never committed.
 .archive/
 
-# Editor / OS
+# -- Editor / OS ---------------------------------------------
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+Desktop.ini
 
+# -- AI / agent rules (internal, not for public repo) --------
 AGENTS.md
 CLAUDE.md
 **/AGENTS.md
 **/CLAUDE.md
 
-# Python tooling caches
+# -- Python tooling caches -----------------------------------
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 
-# Coverage artifacts
+# -- Coverage artifacts --------------------------------------
 coverage/
 .coverage
 htmlcov/
 
-# AI / editor tooling
+# -- AI / editor tooling -------------------------------------
 .cursor/
 .windsurf/
 .roo/
 
-# Vercel
+# -- Vercel --------------------------------------------------
 .vercel/
 
-# Playwright outputs
-playwright-report/
-test-results/
-
-# Optional future tooling
+# -- Optional future tooling ---------------------------------
 .turbo/
 .pnpm-store/
-
-# Windows junk
-Desktop.inireport.txt

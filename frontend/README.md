@@ -22,9 +22,15 @@ For the full architecture overview, see the repository root
 
 ```bash
 npm install
-echo "NEXT_PUBLIC_API_BASE_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > .env.local
 npm run dev
 ```
+
+> Use `127.0.0.1`, not `localhost`. uvicorn's default `--reload` bind is
+> IPv4-only, while the browser may try IPv6 (`::1`) first when resolving
+> `localhost`, leading to intermittent `TypeError: Failed to fetch` errors
+> in dev. Pointing the frontend at `127.0.0.1` avoids the IPv6 fallback
+> entirely.
 
 App runs at `http://localhost:3000`. The backend must be reachable
 at `NEXT_PUBLIC_API_BASE_URL`.
@@ -92,10 +98,10 @@ block in `src/app/layout.tsx`.
 
 ## Notes
 
-- This project follows the rules in [`AGENTS.md`](./AGENTS.md).
-  Frontend changes should keep components small, prefer server
+- Frontend changes should keep components small, prefer server
   components when interactivity is not needed, and never embed
-  business logic in routes.
+  business logic in routes. See the root [`CONTRIBUTING.md`](../CONTRIBUTING.md)
+  for the engineering principles that apply across the project.
 - The AI briefing card (`components/dashboard/briefing-card.tsx`)
   reads from the FastAPI `/ai/briefing` endpoint. It expects the
   backend to enforce its own timeout + deterministic fallback.

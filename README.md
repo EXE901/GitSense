@@ -325,18 +325,24 @@ python -m venv venv
 # source venv/bin/activate       # macOS / Linux
 pip install -r requirements.txt
 cp .env.example .env             # then fill the required keys
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Backend listens on `http://localhost:8000`.
+Backend listens on `http://127.0.0.1:8000`.
 Health check: `GET /health` → `{"status":"healthy"}`.
+
+> Bind to `127.0.0.1` explicitly (or accept uvicorn's IPv4-only default) and
+> point the frontend at `127.0.0.1` — not `localhost`. On Windows and on
+> machines with IPv6-first resolvers, the browser may try `[::1]:8000` before
+> `127.0.0.1:8000`, and the IPv6 attempt against an IPv4-only bind surfaces
+> as `TypeError: Failed to fetch` in the React layer.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-echo "NEXT_PUBLIC_API_BASE_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000" > .env.local
 npm run dev
 ```
 
@@ -385,20 +391,20 @@ OG / Twitter image URLs).
 
 ```
 GitSense/
-├── AGENTS.md                  # Global engineering rules
 ├── README.md                  # This file
-├── report.txt                 # Implementation report
+├── CONTRIBUTING.md
 ├── docs/
 │   ├── DEPLOYMENT.md          # Deployment recipe
 │   └── screenshots/           # Real screenshots used in README
 ├── .github/
 │   ├── ISSUE_TEMPLATE/        # Bug + feature request templates
 │   └── PULL_REQUEST_TEMPLATE.md
-├── CONTRIBUTING.md
 ├── backend/
-│   ├── AGENTS.md              # Backend rules
 │   ├── .env.example
 │   ├── requirements.txt
+│   ├── Procfile               # Railway / Heroku-style process file
+│   ├── railway.json           # Railway deploy config
+│   ├── runtime.txt            # Python runtime pin
 │   └── app/
 │       ├── api/               # Route handlers (thin)
 │       ├── services/          # Business logic
@@ -408,7 +414,6 @@ GitSense/
 │       ├── utils/             # Shared helpers
 │       └── main.py
 └── frontend/
-    ├── AGENTS.md              # Frontend rules
     ├── package.json
     ├── public/                # Branding assets
     └── src/
