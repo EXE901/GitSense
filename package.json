@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "frontend": "cd frontend && npm run dev",
-    "backend": "cd backend && npm run server",
+    "backend": "cd backend && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\""
   },
   "devDependencies": {

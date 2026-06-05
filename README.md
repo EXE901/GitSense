@@ -101,14 +101,44 @@ filling line reaches it** — a small, restrained progress affordance.
 
 The dashboard leads with workspace mode, briefing, and health, then
 layers metrics, insights, timeline, heatmap, charts, and the issues feed
-underneath. Linear-tight density with calm motion.
+underneath. Linear-tight density with calm motion. Populated here from
+five large open-source repositories (Next.js, React, VS Code, FastAPI,
+Tailwind) — 765,803 stars, 292,515 issues, 306 indexed for analysis.
 
 <img src="docs/screenshots/04-dashboard.png" alt="GitSense dashboard, operational view" />
+
+### AI operational briefing
+
+A grounded, 3–5 sentence narrative interpretation of the deterministic
+signal bundle. State, dominant concern, and active signals are surfaced
+with confidence; the LLM is never allowed to invent metrics, and a
+deterministic summarizer is used when the AI provider is unavailable.
+
+<img src="docs/screenshots/14-ai-briefing.png" alt="GitSense AI operational briefing card" />
+
+### Workspace health
+
+A weighted, explainable health score across stale pressure, throughput,
+maintenance, and backlog. Workspace-level rollup plus per-repository
+state distribution (Healthy / Stable / Watch / At Risk) and a contributor
+load proxy across synced repositories.
+
+<img src="docs/screenshots/15-workspace-health.png" alt="GitSense workspace health card" />
+
+### Workflow insights
+
+Severity-tagged operational signals — issue volume spikes, bug-label
+spikes, backlog growth, stale clusters — each carrying a recommendation
+and a confidence value. Insights persist across cycles and trend over
+time via the insight history service.
+
+<img src="docs/screenshots/16-workflow-insights.png" alt="GitSense workflow insights" />
 
 ### Dashboard — metrics grid
 
 Tabular-numeric metric values (28 px medium), 11 px uppercase eyebrows,
-GitHub-blue chip iconography, and blue → cyan sparklines.
+GitHub-blue chip iconography, and blue → cyan sparklines. Populated
+counts here come straight from the synced repositories.
 
 <img src="docs/screenshots/05-dashboard-metrics.png" alt="GitSense dashboard metrics grid" />
 
@@ -116,9 +146,19 @@ GitHub-blue chip iconography, and blue → cyan sparklines.
 
 Recharts re-skinned to the GitSense token system: calm axes (no axisLine,
 no tickLine), Level-2 tooltips, accent-blue closed-issue series,
-state-open green, accent-cyan label bars.
+state-open green, accent-cyan label bars. Activity timeline shows
+30-day issue update trend; label and repository distribution charts
+reflect real label and ownership data.
 
 <img src="docs/screenshots/06-dashboard-charts.png" alt="GitSense analytics charts" />
+
+### Issue intelligence
+
+Synced issues across the tracked repositories with paginated navigation,
+filters by state / repo / sort, and inline metadata: repository, age,
+labels, comments count. Page 1 of 16 across 306 indexed issues.
+
+<img src="docs/screenshots/17-issue-feed.png" alt="GitSense issue feed card" />
 
 ### Dashboard — mobile
 
